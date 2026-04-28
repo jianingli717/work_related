@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>HAL — Business Decision Tree 1.3</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; margin: 0; background: #f0f4f8; color: #222; }
+  .page { max-width: 1100px; margin: 0 auto; padding: 40px 32px; }
+  h1 { color: #1A3A5C; font-size: 26px; margin-bottom: 4px; }
+  .subtitle { color: #666; font-size: 13px; margin-bottom: 32px; }
+  h2 { color: #1A3A5C; font-size: 18px; border-bottom: 2px solid #1A3A5C; padding-bottom: 6px; margin-top: 44px; }
+  h3 { color: #1A3A5C; font-size: 15px; margin-top: 24px; margin-bottom: 10px; }
+  .card { background: white; border-radius: 10px; padding: 24px 28px; margin: 18px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .mermaid { text-align: center; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 14px; }
+  th { background: #1A3A5C; color: white; padding: 8px 12px; text-align: left; font-weight: 600; }
+  td { padding: 8px 12px; border: 1px solid #ccc; vertical-align: top; }
+  tr:nth-child(even) td { background: #F2F6FB; }
+  .hl td { background: #DCE8F5 !important; font-weight: bold; }
+  .result td { background: #d4edda !important; font-weight: bold; }
+  .warn td { background: #FEF9E7 !important; }
+  .formula { font-family: monospace; background: #f4f4f4; padding: 2px 7px; border-radius: 4px; font-size: 13px; }
+  .note { background: #e8f4fd; border-left: 4px solid #2196F3; padding: 10px 14px; border-radius: 4px; margin: 12px 0; font-size: 14px; }
+  .warn-box { background: #FEF9E7; border-left: 4px solid #f0b429; padding: 10px 14px; border-radius: 4px; margin: 12px 0; font-size: 14px; }
+  .ok-box { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 10px 14px; border-radius: 4px; margin: 12px 0; font-size: 14px; }
+  .step { display: inline-block; background: #1A3A5C; color: white; padding: 2px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; margin-right: 6px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .three-col { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .vendor-box { border: 2px solid #1A3A5C; border-radius: 8px; padding: 14px; }
+  .vendor-box h4 { margin: 0 0 8px; color: #1A3A5C; font-size: 14px; }
+  .vendor-box table { font-size: 13px; }
+  .tag-pref { background: #1A3A5C; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  .tag-norm { background: #888; color: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+  .big-num { font-size: 22px; font-weight: bold; color: #1A3A5C; }
+  .calc-box { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px; padding: 12px 16px; margin: 8px 0; font-size: 14px; }
+  .calc-box .eq { font-family: monospace; font-size: 13px; color: #333; }
+  .arrow-right { color: #1A3A5C; margin: 0 6px; }
+  hr { border: none; border-top: 1px solid #e0e0e0; margin: 28px 0; }
+  .nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .nav a { background: #DCE8F5; color: #1A3A5C; padding: 5px 14px; border-radius: 16px; font-size: 13px; font-weight: bold; text-decoration: none; border: 1px solid #b0c8e8; }
+  .phase-tag { display: inline-block; background: #1A3A5C; color: white; padding: 2px 9px; border-radius: 10px; font-size: 11px; font-weight: bold; margin-right: 6px; vertical-align: middle; }
+  .biz-note { background: #f0f7ee; border-left: 3px solid #2e7d32; padding: 9px 13px; border-radius: 4px; margin: 10px 0; font-size: 13px; color: #1b3a1c; line-height: 1.55; }
+  .edge-box { background: #f8f9fa; border: 1px dashed #bbb; border-radius: 8px; padding: 14px 18px; font-size: 13px; color: #555; line-height: 1.6; }
+  .edge-box h4 { color: #666; font-size: 13px; font-weight: 700; margin: 0 0 8px; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>HAL — Business Decision Tree</h1>
+<p class="subtitle">Version 1.3 · Based on 1.1_Business Rules &amp; Gap Analysis · Business decisions only · Excludes data validation rules</p>
+
+<div class="nav">
+  <a href="#dt-main">Full Decision Tree</a>
+  <a href="#dt-cap">Capacity Cap</a>
+  <a href="#dt-bucket">Bucket Structure</a>
+  <a href="#dt-fill">Baseline Fill</a>
+  <a href="#dt-opt">Optimisation</a>
+  <a href="#example">Worked Example</a>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FULL DECISION TREE
+═══════════════════════════════════════════════════════ -->
+<h2 id="dt-main">Full Business Decision Tree</h2>
+<div class="card">
+<div style="display:flex; gap:20px; align-items:flex-start;">
+
+  <!-- Flowchart — clean, no embedded note boxes -->
+  <div style="flex:1; min-width:0;">
+  <div class="mermaid">
+%%{init: {'flowchart': {'nodeSpacing': 32, 'rankSpacing': 38}}}%%
+flowchart TD
+    START([📂 File Uploaded]) --> VGRADE
+
+    subgraph GRADE [Step 1 · Classify Every Vendor]
+        VGRADE[Read vendor grade from BI data]
+        VGRADE --> VCHECK{Grade = S or A?}
+        VCHECK -->|Yes| PREF[🔵 Preferred Vendor\nEligible for Quota bucket\nLead Time required]
+        VCHECK -->|No — B, C or N| NORM[⚪ Normal Vendor\nShared bucket only\nLead Time not required]
+    end
+
+    PREF --> REGION
+    NORM --> REGION
+
+    subgraph CAP [Step 2 · Capacity Cap — per vendor per route]
+        REGION{Which region\nis this bid?}
+        REGION -->|SEA| SEA_VOL{Weekly volume\n≥ 14,000 kg?}
+        REGION -->|LATAM| LAT_VOL{Weekly volume\n≥ 22,400 kg?}
+        SEA_VOL -->|NO| NOCAP[Effective Cap =\nVendor stated capacity]
+        LAT_VOL -->|NO| NOCAP
+        SEA_VOL -->|YES| YESCAP[Cap Ratio = max of\n0.84 − 0.000003 × Volume\nand 0.47\n\nVendor Cap = floor of Volume × Ratio\nEffective Cap = min of Stated and Vendor Cap]
+        LAT_VOL -->|YES| YESCAP
+    end
+
+    NOCAP --> BUCKET
+    YESCAP --> BUCKET
+
+    subgraph BUCKET [Step 3 · Bucket Structure — per route]
+        BUCKETQ{Which vendors\nexist on this route?}
+        BUCKETQ -->|Mix of both| BM[Quota target = min of 70% × Volume\nand total Preferred eff. cap\nShared = Volume − Quota filled]
+        BUCKETQ -.->|Preferred only| BP[Quota = 100% of volume\ncapped at Preferred eff. cap\nNo Shared bucket]
+        BUCKETQ -.->|Normal only| BN[All volume to Normal vendors\nNo Quota bucket]
+        BP ~~~ BN
+    end
+
+    BM --> FILL
+    BP --> FILL
+    BN --> FILL
+
+    subgraph FILL [Step 4 · Baseline Allocation]
+        FILLQ[QUOTA — Preferred vendors only\nSort by: Cost ↑ then LT ↑ then file order\nAllocate each up to eff. cap until Quota target met]
+        FILLQ --> FILLS[SHARED — All vendors\nSort by: Cost ↑ then LT ↑ then file order\nDeduct Preferred vendors Quota usage first\nAllocate remaining cap until volume met]
+    end
+
+    FILL --> METRICS
+
+    subgraph METRICS [Step 5 · Calculate Metrics]
+        M1[Weighted Avg Cost = Sum of alloc × cost ÷ total allocated volume]
+        M1 --> M2[Preferred LT = Sum of Quota kg × LT ÷ total Quota kg\nPreferred vendors · Quota bucket only]
+        M2 --> M3[Preferred Share = Total Preferred alloc ÷ total system volume\nInformational only]
+    end
+
+    METRICS --> OPT
+
+    subgraph OPT [Step 6 · Optimisation]
+        OPTQ{Both Budget target\nAND LT target provided?}
+        OPTQ -->|No| OPTSKIP([Use baseline as final result])
+        OPTQ -->|Yes| MODEA_CHK
+
+        MODEA_CHK{Weighted avg cost\n> Budget target?}
+        MODEA_CHK -->|No — within budget| MODEB_CHK
+        MODEA_CHK -->|Yes| MODEA[MODE A — Budget Reduction\nFrom: Preferred vendor Quota — highest cost\nTo: Normal vendor Shared — lowest cost\nPick move saving the most cost per kg\nRepeat until cost ≤ budget or no moves left]
+        MODEA --> MODEA_DONE{Cost ≤ budget\nor no valid moves?}
+        MODEA_DONE -->|No — keep going| MODEA
+        MODEA_DONE -->|Yes| MODEB_CHK
+
+        MODEB_CHK{Preferred LT\n> LT target?}
+        MODEB_CHK -->|No — target met| DONE
+        MODEB_CHK -->|Yes| MODEB[MODE B — LT Improvement\nFrom: slower Preferred vendor Quota\nTo: faster Preferred vendor Quota\nSame route only · cost must stay ≤ budget\nPrefer zero-cost moves first\nRepeat until LT ≤ target or no moves left]
+        MODEB --> MODEB_DONE{LT ≤ target\nor no valid moves?}
+        MODEB_DONE -->|No| MODEB
+        MODEB_DONE -->|Yes| DONE
+        DONE([✅ Final Allocation])
+    end
+  </div>
+  </div>
+
+  <!-- Green explanation notes — right column, aligned with Step 2 and Step 3 -->
+  <div style="width:210px; flex-shrink:0; display:flex; flex-direction:column; padding-top:530px;">
+    <div class="biz-note">
+      <strong>💡 Threshold</strong><br/>
+      Below the threshold, splitting across vendors is not meaningful — one vendor can take the full route.
+    </div>
+    <div class="biz-note" style="margin-top:12px;">
+      <strong>💡 Cap ratio</strong><br/>
+      Linearly decaying cap — as route volume grows, max vendor share shrinks, limiting concentration risk. Hard floor at 47%.
+    </div>
+    <div class="biz-note" style="margin-top:220px;">
+      <strong>💡 Why 70%</strong><br/>
+      The 70% baseline ensures the majority of shipment volume is prioritised to more reliable, pre-approved Preferred vendors.
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     CAPACITY CAP DETAIL
+═══════════════════════════════════════════════════════ -->
+<h2 id="dt-cap">Decision 2 — Capacity Cap (Detail)</h2>
+<div class="card">
+<div class="two-col">
+<div>
+<div class="mermaid">
+flowchart TD
+    A([For each vendor on the route]) --> R{Which region\nis this bid?}
+    R -->|SEA| B1{Weekly volume\n≥ 14,000 kg?}
+    R -->|LATAM| B2{Weekly volume\n≥ 22,400 kg?}
+    B1 -->|NO| C[Effective Cap = Stated Capacity\nNo cap applied]
+    B2 -->|NO| C
+    B1 -->|YES| D["Cap Ratio = max( 0.84 − 0.000003 × Volume,  0.47 )
+    Vendor Cap = floor( Volume × Cap Ratio )
+    Effective Cap = min( Stated Capacity,  Vendor Cap )"]
+    B2 -->|YES| D
+    C --> E([Effective cap confirmed])
+    D --> E
+</div>
+</div>
+<div>
+<h3>Why the volume threshold?</h3>
+<div class="biz-note">
+  <strong>Threshold = Min daily volume × 7 days × 2 vendors.</strong><br/>
+  The cap activates only when the route generates enough weekly volume to sustain at least 2 vendors at their minimum viable daily volume. Below the threshold, splitting across vendors is not meaningful — one vendor can take the full route. Above it, there is sufficient scale to enforce a cap and keep multiple vendors viable.
+</div>
+<table>
+  <tr><th>Region</th><th>Min Daily Volume</th><th>Calculation</th><th>Threshold</th></tr>
+  <tr><td><strong>SEA</strong></td><td>1,000 kg/day</td><td>1,000 × 7 × 2</td><td><strong>14,000 kg/week</strong></td></tr>
+  <tr><td><strong>LATAM</strong></td><td>1,600 kg/day</td><td>1,600 × 7 × 2</td><td><strong>22,400 kg/week</strong></td></tr>
+</table>
+
+<h3 style="margin-top: 22px;">Why the cap ratio formula?</h3>
+<div class="biz-note">
+  <strong>Linearly decaying concentration cap</strong> — as route volume grows, the maximum share any single vendor can hold shrinks, limiting concentration risk. The hard floor at 47% (above 123,333 kg/week) is a non-negotiable policy limit. The formula was derived from concentration risk analysis: policy targets were set at key volume levels, a linear curve was fitted to those points, yielding the 0.84 intercept and 0.000003 slope, with a 47% floor applied as an absolute minimum.
+</div>
+<h3>Cap ratio reference</h3>
+<table>
+  <tr><th>Volume</th><th>Ratio</th><th>Vendor Cap</th></tr>
+  <tr><td>Below threshold</td><td>No cap</td><td>= Stated capacity</td></tr>
+  <tr><td>14,000 kg</td><td>0.798</td><td>11,172 kg</td></tr>
+  <tr><td>20,000 kg</td><td>0.780</td><td>15,600 kg</td></tr>
+  <tr><td>22,400 kg</td><td>0.773</td><td>17,311 kg</td></tr>
+  <tr><td>50,000 kg</td><td>0.690</td><td>34,500 kg</td></tr>
+  <tr><td>100,000 kg</td><td>0.540</td><td>54,000 kg</td></tr>
+  <tr><td>123,333 kg+</td><td>0.47 (floor)</td><td>floor(vol × 0.47)</td></tr>
+</table>
+<div class="note">The same cap formula applies to ALL vendors on the route equally — Preferred and Normal alike.</div>
+</div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     BUCKET STRUCTURE DETAIL
+═══════════════════════════════════════════════════════ -->
+<h2 id="dt-bucket">Decision 3 — Bucket Structure (Detail)</h2>
+<div class="card">
+<h3>Main Workflow — Mixed Route (Preferred + Normal vendors)</h3>
+<div class="mermaid">
+flowchart LR
+    A([Route has both\nPreferred and Normal vendors]) --> E["Quota target = min( 70% × Volume ,  Σ Preferred eff. cap )
+    Shared = Volume − Quota filled
+
+    If Preferred cap &lt; 70% target → Quota shrinks to Preferred cap
+    → Shared absorbs the difference"]
+    E --> F([Proceed to fill])
+</div>
+<div class="biz-note">
+  <strong>Why 70%?</strong> The 70% baseline ensures the majority of shipment volume is prioritised to more reliable, pre-approved Preferred vendors — supporting service stability and business relationship commitments.
+</div>
+<div class="note"><strong>Note:</strong> The 70% is the starting baseline, not a hard floor. Mode A optimisation can reduce Preferred share below 70% if needed to meet the budget target.</div>
+
+<hr/>
+<h3 style="color: #888; font-size: 13px; margin-top: 0;">Edge Cases — non-standard route compositions</h3>
+<div class="two-col">
+  <div class="edge-box">
+    <h4>Preferred Vendors Only</h4>
+    Quota = min(100% × Volume, Σ Preferred eff. cap)<br/>
+    Shared bucket does not exist.<br/>
+    If Preferred cap &lt; volume → shortfall is permanently unallocated.
+  </div>
+  <div class="edge-box">
+    <h4>Normal Vendors Only</h4>
+    All volume goes to Normal vendors.<br/>
+    Quota bucket does not exist.<br/>
+    Fill by: Cost ↑ then LT ↑ then file order.
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     BASELINE FILL DETAIL
+═══════════════════════════════════════════════════════ -->
+<h2 id="dt-fill">Decision 4 — Baseline Allocation Fill (Detail)</h2>
+<div class="card">
+<div class="mermaid">
+flowchart TD
+    subgraph QUOTA [Fill Quota Bucket — Preferred vendors only]
+        Q1["Sort Preferred vendors:
+        Priority 1: Lowest cost
+        Priority 2: Fastest Lead Time (tiebreaker)
+        Priority 3: File order (final tiebreaker)"]
+        Q1 --> Q2[Take Vendor #1\nAllocate = min of eff. cap and remaining Quota target\nDeduct from remaining Quota]
+        Q2 --> Q3{Quota target\nfilled?}
+        Q3 -->|No → next vendor| Q2
+        Q3 -->|Yes| QDONE([Quota filled ✅])
+        Q2 --> Q4{Vendor capacity\nexhausted?}
+        Q4 -->|Yes → next vendor| Q2
+    end
+
+    QDONE --> SHARED
+
+    subgraph SHARED [Fill Shared Bucket — all vendors]
+        S1{Shared bucket\nexists?}
+        S1 -->|No — Preferred only or Normal only route| SKIP([No Shared fill needed])
+        S1 -->|Yes| S2["Sort ALL vendors:
+        Priority 1: Lowest cost
+        Priority 2: Fastest Lead Time (tiebreaker)
+        Priority 3: File order (final tiebreaker)
+
+        ⚠️ For Preferred vendors:
+        Remaining cap = Eff. cap − Quota allocation"]
+        S2 --> S3[Take Vendor #1\nAllocate = min of remaining cap and remaining Shared demand]
+        S3 --> S4{Shared demand\nfilled?}
+        S4 -->|No → next vendor| S3
+        S4 -->|Yes| SDONE([Shared filled ✅])
+    end
+</div>
+<div class="note">A Preferred vendor can appear in both Quota and Shared. Their combined allocation cannot exceed their effective capacity.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     OPTIMISATION DETAIL
+═══════════════════════════════════════════════════════ -->
+<h2 id="dt-opt">Decision 6 — Optimisation (Detail)</h2>
+<div class="card">
+<div class="two-col">
+<div>
+<h3>Mode A — Budget Reduction</h3>
+<div class="mermaid">
+flowchart TD
+    A([Enter Mode A]) --> B{Cost > budget?}
+    B -->|No| SKIP([Skip to Mode B])
+    B -->|Yes| C["Find all valid moves on every route:
+    Source = Preferred vendor with Quota kg
+    Dest = Normal vendor on same route
+    Valid only if: cost of Dest &lt; cost of Source"]
+    C --> D{Any valid\nmoves exist?}
+    D -->|No| STUCK([Mode A ends\nBudget may still be over target])
+    D -->|Yes| E[Pick move with\nhighest cost saving per kg]
+    E --> F[Apply: −1 kg Source Quota\n+1 kg Dest Shared\nRecalculate global cost]
+    F --> G{Cost ≤ budget?}
+    G -->|No| C
+    G -->|Yes| DONE([Mode A complete\nProceed to Mode B])
+</div>
+</div>
+<div>
+<h3>Mode B — LT Improvement</h3>
+<div class="mermaid">
+flowchart TD
+    A([Enter Mode B]) --> B{Preferred LT\n> LT target?}
+    B -->|No| DONE([Target met ✅])
+    B -->|Yes| C["Find all valid moves on every route:
+    Source = slower Preferred vendor with Quota kg
+    Dest = faster Preferred vendor on same route
+    Valid only if: resulting global cost ≤ budget"]
+    C --> D{Any valid\nmoves exist?}
+    D -->|No| STUCK([Mode B ends\nLT target may not be reached])
+    D -->|Yes| E["Prefer: zero or negative cost moves first
+    Then: best LT gain per unit of cost"]
+    E --> F[Apply: −1 kg Source Quota\n+1 kg Dest Quota\nRecalculate LT and cost]
+    F --> B
+</div>
+</div>
+</div>
+<div class="warn-box"><strong>One-way switch:</strong> Once Mode A finishes, the system moves permanently to Mode B. Mode B only operates within the Quota bucket and only between Preferred vendors on the same route.</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     WORKED EXAMPLE
+═══════════════════════════════════════════════════════ -->
+<h2 id="example">Worked Example — Trace Through the Decision Tree</h2>
+
+<div class="card">
+<h3>Scenario <span style="font-size: 13px; color: #666; font-weight: normal; margin-left: 8px;">· SEA Region Bid</span></h3>
+<div class="three-col">
+  <div class="vendor-box">
+    <h4>Vendor A &nbsp;<span class="tag-pref">S — Preferred</span></h4>
+    <table>
+      <tr><td>Stated Capacity</td><td><strong>8,000 kg</strong></td></tr>
+      <tr><td>Cost</td><td><strong>$5.00/kg</strong></td></tr>
+      <tr><td>Lead Time</td><td><strong>2 days</strong></td></tr>
+    </table>
+  </div>
+  <div class="vendor-box">
+    <h4>Vendor B &nbsp;<span class="tag-pref">A — Preferred</span></h4>
+    <table>
+      <tr><td>Stated Capacity</td><td><strong>8,000 kg</strong></td></tr>
+      <tr><td>Cost</td><td><strong>$4.00/kg</strong></td></tr>
+      <tr><td>Lead Time</td><td><strong>5 days</strong></td></tr>
+    </table>
+  </div>
+  <div class="vendor-box">
+    <h4>Vendor C &nbsp;<span class="tag-norm">B — Normal</span></h4>
+    <table>
+      <tr><td>Stated Capacity</td><td><strong>12,000 kg</strong></td></tr>
+      <tr><td>Cost</td><td><strong>$2.00/kg</strong></td></tr>
+      <tr><td>Lead Time</td><td>— not required</td></tr>
+    </table>
+  </div>
+</div>
+<table style="margin-top:16px; width:auto;">
+  <tr><th>Route Volume</th><th>Budget Target</th><th>LT Target</th></tr>
+  <tr><td><strong>20,000 kg/week</strong></td><td><strong>$3.80/kg</strong></td><td><strong>2.5 days</strong></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="step">Step 1</span> Classify Vendors</h3>
+<table>
+  <tr><th>Vendor</th><th>Grade</th><th>Classification</th><th>LT Required?</th></tr>
+  <tr><td>Vendor A</td><td>S</td><td><span class="tag-pref">Preferred</span> — eligible for Quota</td><td>✅ Yes — 2 days provided</td></tr>
+  <tr><td>Vendor B</td><td>A</td><td><span class="tag-pref">Preferred</span> — eligible for Quota</td><td>✅ Yes — 5 days provided</td></tr>
+  <tr><td>Vendor C</td><td>B</td><td><span class="tag-norm">Normal</span> — Shared only</td><td>Not required</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="step">Step 2</span> Capacity Cap <span style="font-size: 12px; color: #666; font-weight: normal;">· SEA region — threshold 14,000 kg/week</span></h3>
+<div class="calc-box">
+  <div>Route volume = 20,000 kg &nbsp;→&nbsp; <strong>20,000 ≥ 14,000 (SEA threshold) — cap applies</strong></div>
+  <br/>
+  <div class="eq">Cap ratio = max( 0.84 − 0.000003 × 20,000 ,  0.47 )</div>
+  <div class="eq">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = max( 0.84 − 0.06 ,  0.47 )</div>
+  <div class="eq">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; = max( 0.78 ,  0.47 ) = <strong>0.78</strong></div>
+  <br/>
+  <div class="eq">Vendor Cap = floor( 20,000 × 0.78 ) = floor( 15,600 ) = <strong>15,600 kg</strong></div>
+</div>
+<table>
+  <tr><th>Vendor</th><th>Stated Capacity</th><th>Vendor Cap</th><th>Effective Cap = min(Stated, Cap)</th></tr>
+  <tr><td>Vendor A</td><td>8,000 kg</td><td>15,600 kg</td><td><strong>8,000 kg</strong> (stated is lower)</td></tr>
+  <tr><td>Vendor B</td><td>8,000 kg</td><td>15,600 kg</td><td><strong>8,000 kg</strong></td></tr>
+  <tr><td>Vendor C</td><td>12,000 kg</td><td>15,600 kg</td><td><strong>12,000 kg</strong></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="step">Step 3</span> Bucket Structure</h3>
+<div class="calc-box">
+  <div>Route has both Preferred (A, B) and Normal (C) vendors &nbsp;→&nbsp; <strong>Mixed route — 70% rule applies</strong></div>
+  <br/>
+  <div class="eq">70% target = 0.70 × 20,000 = 14,000 kg</div>
+  <div class="eq">Total Preferred eff. cap = 8,000 + 8,000 = 16,000 kg</div>
+  <div class="eq">Quota target = min( 14,000 ,  16,000 ) = <strong>14,000 kg</strong></div>
+  <div class="eq">Shared bucket = 20,000 − 14,000 = <strong>6,000 kg</strong></div>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="step">Step 4</span> Baseline Allocation</h3>
+<div class="two-col">
+<div>
+<h3>Fill Quota (14,000 kg target)</h3>
+<p>Sort Preferred vendors by cost (lowest first):</p>
+<table>
+  <tr><th>Priority</th><th>Vendor</th><th>Cost</th><th>LT</th><th>Eff. Cap</th></tr>
+  <tr class="hl"><td>1st</td><td>Vendor B</td><td>$4.00</td><td>5 days</td><td>8,000 kg</td></tr>
+  <tr><td>2nd</td><td>Vendor A</td><td>$5.00</td><td>2 days</td><td>8,000 kg</td></tr>
+</table>
+<br/>
+<table>
+  <tr><th>Vendor</th><th>Allocated to Quota</th><th>Remaining Quota</th></tr>
+  <tr><td>Vendor B (1st)</td><td>min(8,000, 14,000) = <strong>8,000 kg</strong></td><td>14,000 − 8,000 = 6,000</td></tr>
+  <tr><td>Vendor A (2nd)</td><td>min(8,000, 6,000) = <strong>6,000 kg</strong></td><td>6,000 − 6,000 = 0 ✅</td></tr>
+</table>
+<div class="ok-box"><strong>Quota filled:</strong> B = 8,000 kg &nbsp;|&nbsp; A = 6,000 kg</div>
+</div>
+<div>
+<h3>Fill Shared (6,000 kg target)</h3>
+<p>Sort ALL vendors by cost. Deduct Preferred Quota usage:</p>
+<table>
+  <tr><th>Priority</th><th>Vendor</th><th>Cost</th><th>Available cap</th></tr>
+  <tr class="hl"><td>1st</td><td>Vendor C</td><td>$2.00</td><td>12,000 kg</td></tr>
+  <tr><td>2nd</td><td>Vendor B</td><td>$4.00</td><td>8,000 − 8,000 = <strong>0 kg</strong></td></tr>
+  <tr><td>3rd</td><td>Vendor A</td><td>$5.00</td><td>8,000 − 6,000 = <strong>2,000 kg</strong></td></tr>
+</table>
+<br/>
+<table>
+  <tr><th>Vendor</th><th>Allocated to Shared</th><th>Remaining Shared</th></tr>
+  <tr><td>Vendor C (1st)</td><td>min(12,000, 6,000) = <strong>6,000 kg</strong></td><td>0 ✅</td></tr>
+</table>
+<div class="ok-box"><strong>Shared filled:</strong> C = 6,000 kg</div>
+</div>
+</div>
+
+<hr/>
+<h3>Baseline Summary</h3>
+<table>
+  <tr><th>Vendor</th><th>Quota</th><th>Shared</th><th>Total</th><th>Cost</th><th>LT</th></tr>
+  <tr><td>Vendor A (S)</td><td>6,000 kg</td><td>0</td><td>6,000 kg</td><td>$5.00</td><td>2 days</td></tr>
+  <tr><td>Vendor B (A)</td><td>8,000 kg</td><td>0</td><td>8,000 kg</td><td>$4.00</td><td>5 days</td></tr>
+  <tr><td>Vendor C (B)</td><td>—</td><td>6,000 kg</td><td>6,000 kg</td><td>$2.00</td><td>—</td></tr>
+  <tr class="result"><td><strong>Total</strong></td><td>14,000 kg</td><td>6,000 kg</td><td><strong>20,000 kg</strong></td><td colspan="2"></td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="step">Step 5</span> Baseline Metrics</h3>
+<div class="two-col">
+<div>
+<div class="calc-box">
+  <strong>Weighted Average Cost</strong><br/><br/>
+  <div class="eq">= ( 8,000×$4 + 6,000×$5 + 6,000×$2 ) ÷ 20,000</div>
+  <div class="eq">= ( 32,000 + 30,000 + 12,000 ) ÷ 20,000</div>
+  <div class="eq">= 74,000 ÷ 20,000</div>
+  <div class="eq">= <strong>$3.70/kg</strong></div>
+</div>
+</div>
+<div>
+<div class="calc-box">
+  <strong>Preferred LT</strong> (Quota volume only)<br/><br/>
+  <div class="eq">= ( 8,000×5 + 6,000×2 ) ÷ ( 8,000 + 6,000 )</div>
+  <div class="eq">= ( 40,000 + 12,000 ) ÷ 14,000</div>
+  <div class="eq">= 52,000 ÷ 14,000</div>
+  <div class="eq">= <strong>3.71 days</strong></div>
+</div>
+</div>
+</div>
+<table style="margin-top:12px;">
+  <tr><th>Metric</th><th>Baseline Value</th><th>Target</th><th>Status</th></tr>
+  <tr><td>Weighted Avg Cost</td><td>$3.70/kg</td><td>$3.80/kg</td><td class="ok-box" style="border:none; padding:4px 8px;">✅ Within budget → Mode A skipped</td></tr>
+  <tr><td>Preferred LT</td><td>3.71 days</td><td>2.5 days</td><td class="warn-box" style="border:none; padding:4px 8px;">⚠️ Over target → Mode B runs</td></tr>
+  <tr><td>Preferred Share</td><td>14,000 ÷ 20,000 = 70%</td><td>—</td><td>Informational only</td></tr>
+</table>
+</div>
+
+<div class="card">
+<h3><span class="step">Step 6</span> Optimisation — Mode B (LT Improvement)</h3>
+<div class="note">Mode A is skipped — cost ($3.70) is already within budget ($3.80).</div>
+
+<h3>Find valid Mode B moves</h3>
+<table>
+  <tr><th>Move</th><th>From (slower)</th><th>To (faster)</th><th>LT gain/kg</th><th>Cost change/kg</th><th>Global cost change per move</th></tr>
+  <tr class="hl"><td>B → A</td><td>Vendor B (5 days, $4.00)<br/>Quota = 8,000 kg</td><td>Vendor A (2 days, $5.00)<br/>Free cap = 8,000−6,000 = <strong>2,000 kg</strong></td><td>+3 days</td><td>+$1.00/kg</td><td>+$1 ÷ 20,000 = +$0.00005/kg</td></tr>
+</table>
+
+<div class="calc-box">
+  <strong>How many moves can Mode B make?</strong><br/><br/>
+  <div class="eq">Budget slack available = $3.80 − $3.70 = $0.10/kg</div>
+  <div class="eq">Total budget slack = $0.10 × 20,000 = $2,000</div>
+  <div class="eq">Cost per move = +$1.00 (moving 1 kg from B to A)</div>
+  <div class="eq">Max moves by budget = $2,000 ÷ $1 = 2,000 moves</div>
+  <br/>
+  <div class="eq">Vendor A free capacity = 8,000 − 6,000 = 2,000 kg</div>
+  <div class="eq">Max moves by capacity = 2,000</div>
+  <br/>
+  <strong>Both limits = 2,000 &nbsp;→&nbsp; Mode B applies exactly 2,000 moves</strong>
+</div>
+</div>
+
+<div class="card">
+<h3><span class="step">Final Result</span> After Optimisation</h3>
+<table>
+  <tr><th>Vendor</th><th>Grade</th><th>Quota</th><th>Shared</th><th>Total Allocated</th></tr>
+  <tr><td>Vendor A</td><td>S — Preferred</td><td>6,000 + 2,000 = <strong>8,000 kg</strong></td><td>0</td><td><strong>8,000 kg</strong></td></tr>
+  <tr><td>Vendor B</td><td>A — Preferred</td><td>8,000 − 2,000 = <strong>6,000 kg</strong></td><td>0</td><td><strong>6,000 kg</strong></td></tr>
+  <tr><td>Vendor C</td><td>B — Normal</td><td>—</td><td><strong>6,000 kg</strong></td><td><strong>6,000 kg</strong></td></tr>
+  <tr class="result"><td colspan="4"><strong>Total</strong></td><td><strong>20,000 kg ✅</strong></td></tr>
+</table>
+
+<div class="two-col" style="margin-top:16px;">
+<div>
+<div class="calc-box">
+  <strong>Final Weighted Avg Cost</strong><br/><br/>
+  <div class="eq">= ( 6,000×$4 + 8,000×$5 + 6,000×$2 ) ÷ 20,000</div>
+  <div class="eq">= ( 24,000 + 40,000 + 12,000 ) ÷ 20,000</div>
+  <div class="eq">= 76,000 ÷ 20,000 = <strong>$3.80/kg ✅</strong></div>
+  <div style="margin-top:6px; color:#888; font-size:13px;">At budget ceiling ($3.80). ✅</div>
+</div>
+</div>
+<div>
+<div class="calc-box">
+  <strong>Final Preferred LT</strong><br/><br/>
+  <div class="eq">= ( 6,000×5 + 8,000×2 ) ÷ ( 6,000 + 8,000 )</div>
+  <div class="eq">= ( 30,000 + 16,000 ) ÷ 14,000</div>
+  <div class="eq">= 46,000 ÷ 14,000 = <strong>3.29 days</strong></div>
+  <div style="margin-top:6px; color:#888; font-size:13px;">Target was 2.5 days — not reached. Vendor A at full capacity. No more Mode B moves possible.</div>
+</div>
+</div>
+</div>
+
+<div class="warn-box" style="margin-top:16px;">
+  <strong>Why was the LT target of 2.5 days not reached?</strong><br/><br/>
+  Mode B improves LT by moving kg from Vendor B (slow) to Vendor A (fast). Vendor A's effective capacity is 8,000 kg — it was full after 2,000 moves. To reach 2.5 days, Vendor A would need approximately 9,333 kg, which exceeds its 8,000 kg capacity. The LT target is physically unachievable with the current vendor capacities — the best possible result on this route is 3.29 days.
+</div>
+</div>
+
+<hr/>
+<p style="color:#999; font-size:12px; text-align:center;">HAL Business Decision Tree v1.3 · Based on 1.1_Business Rules &amp; Gap Analysis · Business decisions only</p>
+</div>
+
+<script>mermaid.initialize({ startOnLoad: true, theme: 'default', flowchart: { useMaxWidth: true, htmlLabels: true } });</script>
+</body>
+</html>
