@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Allocation Module — Shopee SLS 3PL Portal</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:14px;color:#1F1F1F;background:#FFF8F6}
+.page{display:flex;min-height:100vh}
+.sidebar{width:200px;background:#fff;border-right:1px solid #F0F0F0;flex-shrink:0;padding:12px 0;position:fixed;top:0;left:0;height:100vh;overflow-y:auto;z-index:10}
+.sidebar-logo{padding:12px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid #F0F0F0;margin-bottom:8px}
+.logo-sq{width:28px;height:28px;background:#EE4D2D;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px}
+.sidebar-scope{margin:0 10px 8px;background:#FFF8F6;border:1px solid #F0F0F0;border-radius:4px;padding:6px 10px;font-size:12px;color:#595959}
+.nav-item{padding:8px 16px;font-size:13px;color:#595959;cursor:pointer;display:flex;align-items:center;gap:8px}
+.nav-item i{font-size:15px}
+.nav-item.active{color:#EE4D2D;background:#FFF0EB;border-left:3px solid #EE4D2D;padding-left:13px}
+.nav-sub{padding:6px 16px 6px 36px;font-size:12px;color:#595959;cursor:pointer}
+.nav-sub.active{color:#EE4D2D;font-weight:500}
+.main{flex:1;margin-left:200px;display:flex;flex-direction:column;min-width:0}
+.topbar{background:#fff;border-bottom:1px solid #F0F0F0;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:9}
+.breadcrumb{font-size:13px;color:#595959}
+.breadcrumb span{color:#1F1F1F;font-weight:500}
+.topbar-right{display:flex;align-items:center;gap:16px;font-size:12px;color:#595959}
+.env-tag{background:#E6F7FF;color:#1890FF;border-radius:4px;padding:2px 8px;font-size:11px;font-weight:500}
+.avatar{width:26px;height:26px;background:#EE4D2D;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600}
+.content{padding:20px;flex:1}
+.screen{display:none}.screen.active{display:block}
+.btn{padding:6px 16px;border-radius:4px;font-size:13px;cursor:pointer;border:1px solid #D9D9D9;background:#fff;color:#1F1F1F;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:#EE4D2D;border-color:#EE4D2D;color:#fff}
+.btn-ghost{background:#fff;border-color:#D9D9D9;color:#595959}
+.btn-disabled{background:#F5F5F5;border-color:#D9D9D9;color:#BFBFBF;cursor:not-allowed}
+.btn-danger{background:#fff;border-color:#CF1322;color:#CF1322}
+.btn-success{background:#fff;border-color:#389E0D;color:#389E0D}
+.btn-warning{background:#fff;border-color:#D48806;color:#D48806}
+.btn-orange-outline{background:#fff;border-color:#EE4D2D;color:#EE4D2D}
+.btn-sm{padding:4px 10px;font-size:12px}
+.filter-bar{background:#fff;border:1px solid #E8E8E8;border-radius:4px;padding:14px 16px;margin-bottom:16px}
+.filter-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.filter-group{display:flex;align-items:center;gap:8px}
+.filter-label{font-size:13px;color:#595959;white-space:nowrap}
+.filter-input{border:1px solid #D9D9D9;border-radius:4px;padding:5px 10px;font-size:13px;outline:none;color:#1F1F1F}
+.filter-input::placeholder{color:#BFBFBF}
+.filter-input:focus{border-color:#EE4D2D}
+.table-card{background:#fff;border:1px solid #E8E8E8;border-radius:4px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{padding:10px 14px;text-align:left;font-weight:500;font-size:12px;color:#595959;border-bottom:1px solid #F0F0F0;background:#FAFAFA;white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid #F0F0F0;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAFA}
+.action-link{color:#1890FF;cursor:pointer;font-size:13px;text-decoration:none}
+.badge{display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:500}
+.badge-pending-init{background:#F5F5F5;color:#595959}
+.badge-in-progress{background:#FFF7E6;color:#D48806}
+.badge-completed{background:#E6F7FF;color:#1890FF}
+.badge-pending-approval{background:#F9F0FF;color:#722ED1}
+.badge-approved{background:#F6FFED;color:#389E0D}
+.badge-locked{background:#F5F5F5;color:#8C8C8C}
+.badge-rejected{background:#FFF1F0;color:#CF1322}
+.pagination-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid #F0F0F0;font-size:12px;color:#595959}
+.page-btn{border:1px solid #D9D9D9;border-radius:4px;padding:3px 9px;background:#fff;cursor:pointer;font-size:12px;color:#595959}
+.page-btn.active-page{background:#EE4D2D;border-color:#EE4D2D;color:#fff}
+.page-size{border:1px solid #D9D9D9;border-radius:4px;padding:3px 6px;font-size:12px;background:#fff;color:#595959;margin-left:8px}
+.bid-header-card{background:#fff;border:1px solid #E8E8E8;border-radius:4px;padding:16px 20px;margin-bottom:14px}
+.bid-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.bid-title{font-size:15px;font-weight:500}
+.bid-meta{display:flex;gap:28px;flex-wrap:wrap}
+.bid-meta-item{display:flex;flex-direction:column;gap:2px}
+.bid-meta-label{font-size:11px;color:#595959}
+.bid-meta-value{font-size:13px;font-weight:500}
+.state-badge-approved{display:inline-flex;align-items:center;gap:6px;background:#F6FFED;color:#389E0D;border:1px solid #B7EB8F;border-radius:4px;padding:4px 12px;font-size:13px;font-weight:500}
+.state-badge-inprogress{display:inline-flex;align-items:center;gap:6px;background:#FFF7E6;color:#D48806;border:1px solid #FFD591;border-radius:4px;padding:4px 12px;font-size:13px;font-weight:500}
+.state-badge-completed{display:inline-flex;align-items:center;gap:6px;background:#E6F7FF;color:#1890FF;border:1px solid #91D5FF;border-radius:4px;padding:4px 12px;font-size:13px;font-weight:500}
+.section-card{background:#fff;border:1px solid #E8E8E8;border-radius:4px;margin-bottom:14px}
+.section-header{padding:11px 16px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between}
+.section-header-clickable{cursor:pointer;user-select:none}
+.section-title{font-size:13px;font-weight:500}
+.section-subtitle{font-size:11px;color:#595959;margin-top:2px}
+.collapse-icon{font-size:13px;color:#595959;transition:transform 0.2s}
+.collapse-icon.open{transform:rotate(180deg)}
+.stale-banner{background:#FFF7E6;border:1px solid #FFD591;border-radius:4px;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-size:12px;color:#D48806}
+.stale-btn{font-size:12px;padding:3px 10px;border-radius:4px;cursor:pointer;border:1px solid #D48806;color:#D48806;background:#fff}
+.stale-btn-primary{background:#D48806;color:#fff}
+.market-block{border:1px solid #E8E8E8;border-radius:4px;margin:14px 16px 0}
+.market-block:last-child{margin-bottom:14px}
+.market-block-header{background:#FAFAFA;padding:9px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #E8E8E8;border-radius:4px 4px 0 0;cursor:pointer;user-select:none}
+.market-name{font-size:13px;font-weight:500}
+.market-body{padding:16px}
+.level-toggle{display:flex;border:1px solid #D9D9D9;border-radius:4px;overflow:hidden;font-size:11px}
+.level-opt{padding:4px 10px;cursor:pointer;background:#fff;color:#595959}
+.level-opt.active{background:#EE4D2D;color:#fff}
+.target-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px}
+.target-field{display:flex;flex-direction:column;gap:5px}
+.target-label{font-size:12px;font-weight:500;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.target-sublabel{font-size:11px;color:#BFBFBF;line-height:1.4}
+.target-input-wrap{display:flex;align-items:center;gap:6px;margin-top:2px}
+.target-input{border:1px solid #D9D9D9;border-radius:4px;padding:5px 10px;font-size:13px;width:130px;outline:none}
+.target-input:focus{border-color:#EE4D2D}
+.target-input.readonly-cost{background:#F5F5F5;color:#8C8C8C;border-color:#E8E8E8;cursor:not-allowed}
+.audit-attr{font-size:10px;color:#8C8C8C;margin-top:3px;display:flex;align-items:center;gap:3px}
+.audit-attr i{font-size:10px}
+.audit-attr.cost-team{color:#722ED1}
+.audit-log-table{width:100%;border-collapse:collapse;font-size:12px}
+.audit-log-table th{padding:7px 12px;text-align:left;font-weight:500;font-size:11px;color:#595959;border-bottom:1px solid #F0F0F0;background:#FAFAFA;white-space:nowrap}
+.audit-log-table td{padding:7px 12px;border-bottom:1px solid #F0F0F0;vertical-align:top;font-size:12px;color:#595959}
+.audit-log-table tr:last-child td{border-bottom:none}
+.audit-field-tag{display:inline-block;background:#F0F0F0;color:#595959;border-radius:3px;font-size:10px;padding:1px 6px;font-family:monospace}
+.audit-val{font-family:monospace;font-size:11px}
+.audit-val.old{color:#CF1322;text-decoration:line-through}
+.audit-val.new{color:#389E0D}
+.target-unit{font-size:11px;color:#595959}
+.copy-btn{font-size:11px;color:#1890FF;cursor:pointer;border:none;background:none;padding:0;display:inline-flex;align-items:center;gap:3px;margin-top:2px}
+.remark-note{font-size:10px;color:#BFBFBF;margin-top:2px}
+.tag-role{background:#F5F5F5;color:#595959;font-size:10px;padding:1px 5px;border-radius:3px}
+.port-label{font-size:11px;color:#595959;font-weight:500;margin-bottom:6px}
+.port-dest-table{width:100%;border-collapse:collapse;font-size:12px}
+.port-dest-table th{background:#F5F5F5;padding:7px 10px;font-weight:500;color:#595959;border:1px solid #EFEFEF;white-space:nowrap}
+.port-dest-table td{padding:7px 10px;border:1px solid #EFEFEF;vertical-align:middle}
+.upload-info{background:#F0F7FF;border-bottom:1px solid #BAE0FF;padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:12px;color:#1890FF}
+.alloc-table th{padding:9px 10px;text-align:left;font-weight:500;font-size:11px;color:#595959;border-bottom:1px solid #F0F0F0;white-space:nowrap;background:#FAFAFA}
+.alloc-table td{padding:8px 10px;border-bottom:1px solid #F0F0F0;white-space:nowrap;vertical-align:top}
+.alloc-table tr:last-child td{border-bottom:none}
+.group-header-row td{background:#F5F5F5;font-weight:500;font-size:11px;color:#595959;padding:5px 10px}
+.market-header-row td{background:#1F4E79;color:#fff;font-weight:600;font-size:11px;padding:7px 12px;letter-spacing:0.2px}
+.row-amber td{background:#FFFBE6}
+.row-red td{background:#FFF1F0}
+.row-compliant td{background:#F6FFED}
+.tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:11px;font-weight:500}
+.tag-preferred{background:#E6F7FF;color:#1890FF}
+.tag-normal{background:#F5F5F5;color:#595959}
+.tag-ok{background:#F6FFED;color:#389E0D}
+.tag-err{background:#FFF1F0;color:#CF1322}
+.tag-warn{background:#FFF7E6;color:#D48806}
+input.cell-input{border:1px solid #D9D9D9;border-radius:3px;padding:3px 7px;font-size:12px;width:90px;outline:none}
+input.cell-input:focus{border-color:#EE4D2D}
+input.cell-input.err{border-color:#CF1322;background:#FFF1F0}
+.grade-select{border:1px solid #FFD591;border-radius:3px;padding:3px 7px;font-size:12px;background:#fff;color:#D48806;outline:none}
+.inline-warn{display:flex;align-items:center;gap:3px;font-size:10px;color:#D48806;margin-top:3px}
+.inline-err{display:flex;align-items:center;gap:3px;font-size:10px;color:#CF1322;margin-top:3px}
+.issue-banner{background:#FFF1F0;border:1px solid #FFCCC7;border-radius:4px;padding:10px 16px;display:flex;align-items:flex-start;gap:10px;margin-bottom:14px;font-size:12px;color:#CF1322;line-height:1.6}
+.metric-cols{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.metric-card{background:#FAFAFA;border:1px solid #F0F0F0;border-radius:4px;padding:10px 12px}
+.metric-card-label{font-size:10px;color:#595959;margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:0.3px}
+.metric-val{font-size:13px;font-weight:500}
+.metric-val.baseline{color:#595959}
+.metric-sublabel{font-size:10px;color:#BFBFBF;margin-top:2px}
+.ref-panels{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.ref-panel{background:#F0F7FF;border:1px solid #BAE0FF;border-radius:4px;padding:10px 12px}
+.ref-panel-label{font-size:10px;color:#1890FF;font-weight:500;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.3px}
+.ref-metrics{display:flex;gap:16px;flex-wrap:wrap}
+.ref-metric-label{font-size:10px;color:#595959}
+.ref-metric-val{font-size:12px;font-weight:500}
+.port-acc{border:1px solid #F0F0F0;border-radius:4px;margin-top:10px}
+.port-acc-header{padding:8px 12px;background:#FAFAFA;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:12px;font-weight:500;border-radius:4px 4px 0 0}
+.legend{display:flex;align-items:center;gap:16px;font-size:11px;color:#595959;padding:8px 16px;border-top:1px solid #F0F0F0;background:#FAFAFA;flex-wrap:wrap}
+.legend-dot{width:10px;height:10px;border-radius:2px;display:inline-block}
+.col-readonly{color:#595959;font-style:italic}
+input.remark-input{border:1px solid #D9D9D9;border-radius:3px;padding:3px 7px;font-size:11px;width:150px;outline:none}
+input.remark-input.err{border:1.5px solid #CF1322}
+.shared-tag{display:inline-block;background:#EEF;color:#534AB7;border-radius:3px;font-size:10px;padding:1px 5px;margin-left:4px}
+.grid-info{background:#F0F7FF;border-bottom:1px solid #BAE0FF;padding:7px 16px;display:flex;align-items:center;gap:8px;font-size:11px;color:#1890FF}
+.metric-mini{display:flex;flex-direction:column;gap:2px}
+.metric-mini-label{font-size:10px;color:#595959}
+.metric-mini-val{font-size:13px;font-weight:500}
+.metric-collapsed{padding:12px 16px;display:flex;gap:24px;flex-wrap:wrap;border-bottom:1px solid #F0F0F0}
+.approval-panel{background:#fff;border:1px solid #E8E8E8;border-radius:4px;margin-bottom:14px;overflow:hidden}
+.approval-panel-header{background:#F6FFED;border-bottom:1px solid #B7EB8F;padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+.approval-panel-title{font-size:13px;font-weight:500;color:#389E0D;display:flex;align-items:center;gap:8px}
+.approval-panel-body{padding:16px;display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.approval-info-row{font-size:12px;color:#595959;display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.state-pill{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:500}
+.pill-approved{background:#F6FFED;color:#389E0D}
+.pill-submitted{background:#E6F7FF;color:#1890FF}
+.grid-locked-banner{background:#F5F5F5;border-bottom:1px solid #E8E8E8;padding:7px 16px;display:flex;align-items:center;gap:8px;font-size:11px;color:#595959}
+.vendor-table th{padding:9px 16px;text-align:left;font-weight:500;font-size:12px;color:#595959;border-bottom:1px solid #F0F0F0;background:#FAFAFA}
+.vendor-table td{padding:10px 16px;border-bottom:1px solid #F0F0F0;vertical-align:middle}
+.vendor-table tr:last-child td{border-bottom:none}
+.send-status{font-size:12px;color:#595959}
+.send-status.sent{color:#389E0D}
+.send-status.unsent{color:#BFBFBF}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal-box{background:#fff;border-radius:4px;width:480px;max-width:90vw;box-shadow:0 8px 32px rgba(0,0,0,0.18)}
+.modal-header{padding:14px 20px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;gap:10px}
+.modal-title{font-size:14px;font-weight:500}
+.modal-body{padding:16px 20px;font-size:13px;color:#595959;line-height:1.6;max-height:60vh;overflow-y:auto}
+.modal-footer{padding:12px 20px;border-top:1px solid #F0F0F0;display:flex;justify-content:flex-end;gap:8px}
+.warning-item{margin-bottom:10px;padding:10px 12px;border-radius:4px;border-left:3px solid #FAAD14;background:#FFFBE6;font-size:12px}
+.warning-item.w-red{border-left-color:#CF1322;background:#FFF1F0}
+.warning-id{font-weight:500;color:#D48806;margin-bottom:3px}
+.warning-id-red{font-weight:500;color:#CF1322;margin-bottom:3px}
+.warning-msg{color:#595959;line-height:1.5}
+.alert-box{background:#FFF7E6;border:1px solid #FFD591;border-radius:4px;padding:10px 14px;font-size:12px;color:#D48806;margin-top:12px;display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.form-label{font-size:12px;font-weight:500;margin-bottom:6px;display:block}
+.form-textarea{width:100%;border:1px solid #D9D9D9;border-radius:4px;padding:8px;font-size:13px;resize:vertical;height:72px;outline:none;font-family:inherit}
+.form-textarea:focus{border-color:#EE4D2D}
+.audit-table{width:100%;border-collapse:collapse}
+.audit-table th{padding:8px 12px;text-align:left;font-weight:500;font-size:11px;color:#595959;border-bottom:1px solid #F0F0F0;background:#FAFAFA;white-space:nowrap}
+.audit-table td{padding:8px 12px;border-bottom:1px solid #F0F0F0;vertical-align:top;font-size:12px}
+.audit-table tr:last-child td{border-bottom:none}
+hr.divider{border:none;border-top:1px solid #F0F0F0;margin:14px 0}
+</style>
+</head>
+<body>
+<div class="page">
+<div class="sidebar">
+  <div class="sidebar-logo"><div class="logo-sq">S</div><span style="font-weight:600;font-size:13px;color:#EE4D2D">Shopee</span></div>
+  <div class="sidebar-scope">3PL Portal All (Local Time)</div>
+  <div class="nav-item"><i class="ti ti-settings"></i>System Setting</div>
+  <div class="nav-item"><i class="ti ti-users"></i>Access Management</div>
+  <div class="nav-item"><i class="ti ti-chart-bar"></i>Logistics Performance</div>
+  <div class="nav-item"><i class="ti ti-file"></i>Document Management</div>
+  <div class="nav-item"><i class="ti ti-message"></i>Feedback Management</div>
+  <div class="nav-item active"><i class="ti ti-clipboard-list"></i>Bid Management</div>
+  <div class="nav-sub">Request Management</div>
+  <div class="nav-sub">Solution Management</div>
+  <div class="nav-sub active" onclick="showScreen('list')">Allocation</div>
+</div>
+<div class="main">
+  <div class="topbar">
+    <div class="breadcrumb" id="breadcrumb">Bid Management / <span>Allocation</span></div>
+    <div class="topbar-right">
+      <span>On Duty: -</span>
+      <span>PFB: - <i class="ti ti-info-circle" style="font-size:13px"></i></span>
+      <span class="env-tag">UAT</span>
+      <div class="avatar">JL</div>
+      <span style="font-size:12px;color:#1F1F1F">jianing.lijn</span>
+    </div>
+  </div>
+
+  <!-- LIST -->
+  <div class="screen active content" id="screen-list">
+    <div class="filter-bar">
+      <div class="filter-row">
+        <div class="filter-group"><span class="filter-label">Bid ID</span><input class="filter-input" type="text" placeholder="Please Input" style="width:220px"/></div>
+        <div class="filter-group"><span class="filter-label">Status</span><select class="filter-input" style="width:200px"><option value="" disabled selected>Please Select</option><option>Pending Initiation</option><option>In Progress</option><option>Completed</option><option>Pending Approval</option><option>Approved</option><option>Rejected</option><option>Locked</option></select></div>
+        <div class="filter-group"><span class="filter-label">Region</span><select class="filter-input" style="width:140px"><option value="" disabled selected>Please Select</option><option>SEA</option><option>LATAM</option></select></div>
+        <div style="margin-left:auto;display:flex;gap:8px"><button class="btn btn-primary"><i class="ti ti-search"></i>Search</button><button class="btn btn-ghost">Reset</button></div>
+      </div>
+    </div>
+    <div class="table-card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Bid ID</th><th>Region</th><th>Status</th><th>Last Updated</th><th>Action</th></tr></thead>
+          <tbody>
+            <tr><td style="font-weight:500">Sea260602</td><td>SEA</td><td><span class="badge badge-approved">Approved</span></td><td>2026/06/19 10:22:00</td><td><a class="action-link" onclick="showScreen('phase3')">View</a></td></tr>
+            <tr><td style="font-weight:500">Sea260601</td><td>SEA</td><td><span class="badge badge-pending-approval">Pending Approval</span></td><td>2026/06/18 14:00:00</td><td><a class="action-link" onclick="showScreen('phase2')">View</a></td></tr>
+            <tr><td style="font-weight:500">Latam260605</td><td>LATAM</td><td><span class="badge badge-in-progress">In Progress</span></td><td>2026/06/19 08:30:00</td><td><a class="action-link" onclick="showScreen('phase1')">View</a></td></tr>
+            <tr><td style="font-weight:500">Sea260603</td><td>SEA</td><td><span class="badge badge-locked">Locked</span></td><td>2026/06/17 16:45:00</td><td><a class="action-link">View</a></td></tr>
+            <tr><td style="font-weight:500">Latam260604</td><td>LATAM</td><td><span class="badge badge-rejected">Rejected</span></td><td>2026/06/18 09:10:00</td><td><a class="action-link">View</a></td></tr>
+            <tr><td style="font-weight:500">Sea260604</td><td>SEA</td><td><span class="badge badge-pending-init">Pending Initiation</span></td><td>1970/01/01 07:30:00</td><td><a class="action-link">Initiate Allocation</a></td></tr>
+            <tr><td style="font-weight:500">Sea260605</td><td>SEA</td><td><span class="badge badge-completed">Completed</span></td><td>2026/06/19 14:30:00</td><td><a class="action-link">View</a></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination-row">
+        <span>Total: 7</span>
+        <div style="display:flex;align-items:center">
+          <div style="display:flex;gap:4px"><button class="page-btn">&#8249;</button><button class="page-btn active-page">1</button><button class="page-btn">2</button><button class="page-btn">&#8250;</button></div>
+          <select class="page-size"><option>10 / Page</option><option>20 / Page</option></select>
+          <span style="margin-left:8px">Go to page</span>
+          <input style="border:1px solid #D9D9D9;border-radius:4px;padding:3px 6px;font-size:12px;width:44px;margin:0 6px;outline:none" type="text"/>
+          <button class="page-btn">Go</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PHASE 1: INPUT SETUP -->
+  <div class="screen content" id="screen-phase1">
+    <div class="bid-header-card">
+      <div class="bid-header-top">
+        <div style="display:flex;align-items:center;gap:12px"><div class="bid-title">Bid ID: Latam260605</div><div class="state-badge-inprogress"><i class="ti ti-loader"></i>In Progress</div></div>
+        <div style="display:flex;align-items:center;gap:8px"><span style="background:#FFF7E6;color:#D48806;border-radius:4px;padding:3px 10px;font-size:12px;font-weight:500">Commercial Bid: Approved</span><button class="btn btn-ghost" style="font-size:12px"><i class="ti ti-refresh"></i>Refresh Input Data</button></div>
+      </div>
+      <div class="bid-meta">
+        <div class="bid-meta-item"><span class="bid-meta-label">Region</span><span class="bid-meta-value">LATAM</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Markets</span><span class="bid-meta-value">BR, MX</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Allocation Status</span><span class="bid-meta-value" style="color:#D48806">In Progress</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Snapshot Taken</span><span class="bid-meta-value">2026/06/19 08:05:00</span></div>
+      </div>
+    </div>
+    <div class="stale-banner">
+      <span><i class="ti ti-clock" style="font-size:13px;margin-right:5px"></i>This snapshot was taken on 2026/06/19 08:05:00. Data may have changed since. Use <strong>Refresh Input Data</strong> in the header above to re-extract.</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button class="btn btn-ghost btn-sm" onclick="showScreen('list')"><i class="ti ti-arrow-left"></i>Back to list</button>
+      <button class="btn btn-disabled"><i class="ti ti-player-play"></i>Run Allocation</button>
+      <span style="font-size:11px;color:#BFBFBF">Complete all required inputs and resolve validation errors to enable</span>
+    </div>
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Budget &amp; Lead Time Targets</div><div class="section-subtitle">Configure per-market targets before running allocation &middot; Budget Target Level and LT Target Level are configured independently per market</div></div></div>
+      <div style="padding:16px">
+        <div class="market-block">
+          <div class="market-block-header" onclick="toggleEl('brBody','brIcon')">
+            <div class="market-name"><i class="ti ti-map-pin" style="font-size:13px;margin-right:5px;color:#EE4D2D"></i>BR &mdash; Brazil</div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#595959">Budget level:</span><div class="level-toggle"><div class="level-opt active">Market</div><div class="level-opt">Port-dest</div></div></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#595959">LT level:</span><div class="level-toggle"><div class="level-opt active">Market</div><div class="level-opt">Port-dest</div></div></div>
+              <i class="ti ti-chevron-down collapse-icon open" id="brIcon"></i>
+            </div>
+          </div>
+          <div id="brBody" class="market-body">
+            <div class="target-grid">
+              <div class="target-field"><div class="target-label">Target Budget <span class="tag-role">Cost Team</span></div><div class="target-sublabel">Set by Cost Team &middot; Read-only for LH Team</div><div class="target-input-wrap"><input class="target-input readonly-cost" type="text" value="6.200" disabled/><span class="target-unit">USD / kg</span></div><div class="audit-attr cost-team"><i class="ti ti-user"></i>Set by cost.mgr &middot; 2026/06/18 09:14:00</div></div>
+              <div class="target-field"><div class="target-label">Allocation Budget <span class="tag-role">LH Team</span></div><div class="target-sublabel">Auto-copied from Target Budget &middot; LH team may lower this to add buffer before running allocation &middot; Edits require remark</div><div class="target-input-wrap"><input class="target-input" id="brAllocBudget" type="text" value="6.200"/><span class="target-unit">USD / kg</span></div><div class="remark-note">* Remark required on edit</div><div class="audit-attr" id="brAllocAudit"><i class="ti ti-copy"></i>Auto-copied from Target Budget &middot; 2026/06/18 09:14:00</div></div>
+              <div class="target-field"><div class="target-label">Preferred LT Target <span class="tag-role">LH Team</span></div><div class="target-sublabel">Market-level &middot; Extracted from Tech Bid &middot; Edits require remark</div><div class="target-input-wrap"><input class="target-input" type="text" value="3.500"/><span class="target-unit">days</span></div><div class="remark-note">* Remark required on edit</div><div class="audit-attr"><i class="ti ti-user"></i>Extracted from Tech Bid &middot; 2026/06/19 08:05:00</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="market-block">
+          <div class="market-block-header" onclick="toggleEl('mxBody','mxIcon')">
+            <div class="market-name"><i class="ti ti-map-pin" style="font-size:13px;margin-right:5px;color:#EE4D2D"></i>MX &mdash; Mexico</div>
+            <div style="display:flex;align-items:center;gap:16px">
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#595959">Budget level:</span><div class="level-toggle"><div class="level-opt">Market</div><div class="level-opt active">Port-dest</div></div></div>
+              <div style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;color:#595959">LT level:</span><div class="level-toggle"><div class="level-opt">Market</div><div class="level-opt active">Port-dest</div></div></div>
+              <i class="ti ti-chevron-down collapse-icon open" id="mxIcon"></i>
+            </div>
+          </div>
+          <div id="mxBody" class="market-body">
+            <!-- Budget: port-destination -->
+            <div class="port-label">Budget targets &mdash; per port destination</div>
+            <table class="port-dest-table" style="margin-bottom:16px">
+              <thead><tr><th>Port Destination</th><th>Target Budget (USD/kg) <span style="font-weight:400;color:#BFBFBF">Cost Team</span></th><th>Allocation Budget (USD/kg) <span style="font-weight:400;color:#BFBFBF">LH Team · auto-copied · edits require remark</span></th><th></th></tr></thead>
+              <tbody>
+                <tr><td style="font-weight:500">MEX</td><td><input class="cell-input" type="text" value="5.900" style="width:100px;background:#F5F5F5;color:#8C8C8C;border-color:#E8E8E8;cursor:not-allowed" disabled/><div class="audit-attr cost-team" style="margin-top:2px"><i class="ti ti-user"></i>cost.mgr &middot; Jun 18</div></td><td><input class="cell-input" type="text" value="5.900" style="width:100px"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-copy"></i>Auto-copied from Target Budget &middot; Jun 18</div></td><td></td></tr>
+                <tr><td style="font-weight:500">GDL</td><td><input class="cell-input" type="text" placeholder="0.000" style="width:100px;background:#F5F5F5;color:#8C8C8C;border-color:#E8E8E8;cursor:not-allowed" disabled/><div class="audit-attr cost-team" style="margin-top:2px"><i class="ti ti-user"></i>Not yet set</div></td><td><input class="cell-input" type="text" placeholder="Pending Cost Team" style="width:100px;background:#FAFAFA;color:#BFBFBF" disabled/><div class="audit-attr" style="margin-top:2px;color:#BFBFBF"><i class="ti ti-clock"></i>Awaiting Target Budget from Cost Team</div></td><td><span class="tag tag-err" style="font-size:10px">Required</span></td></tr>
+              </tbody>
+            </table>
+            <hr class="divider"/>
+            <!-- LT: port-destination (independently configured) -->
+            <div class="port-label" style="margin-bottom:10px">Preferred LT Target &mdash; per port destination <span style="font-weight:400;color:#BFBFBF">(LT level set independently from budget level)</span></div>
+            <table class="port-dest-table" style="margin-bottom:12px">
+              <thead><tr><th>Port Destination</th><th>Preferred LT Target (days) <span style="font-weight:400;color:#BFBFBF">LH Team</span></th><th></th></tr></thead>
+              <tbody>
+                <tr><td style="font-weight:500">MEX</td><td><input class="cell-input" type="text" value="3.500" style="width:100px"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>Extracted from Tech Bid &middot; 2026/06/19 08:05:00</div></td><td></td></tr>
+                <tr><td style="font-weight:500">GDL</td><td><input class="cell-input" type="text" value="4.000" style="width:100px"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>Extracted from Tech Bid &middot; 2026/06/19 08:05:00</div></td><td></td></tr>
+              </tbody>
+            </table>
+            <div class="remark-note" style="margin-bottom:4px">* Remark required on edit for all LT Target fields</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Vendor Data Table</div><div class="section-subtitle">Snapshot extracted on 2026/06/19 08:05:00 &middot; Most fields read-only &middot; Enter Requested Capacity per route</div></div><div style="display:flex;gap:8px"><button class="btn btn-ghost" style="font-size:12px"><i class="ti ti-download"></i>Download Template</button><button class="btn btn-primary" style="font-size:12px"><i class="ti ti-upload"></i>Mass Upload Capacity</button></div></div>
+      <div class="upload-info"><i class="ti ti-info-circle" style="font-size:14px"></i><span>Requested Capacity must be manually entered &mdash; do not use values from Technical Bid.</span></div>
+      <div class="table-wrap">
+        <table class="alloc-table">
+          <thead><tr><th>Request ID</th><th>Bid ID</th><th>Solution ID</th><th>Market</th><th>Port Dest.</th><th>Vendor ID</th><th>Vendor Name</th><th>Vendor Grade</th><th>Type</th><th>Requested Capacity (kg) *</th><th>Effective Capacity (kg)</th><th>Lead Time (days)</th><th>Cost / kg (USD)</th></tr></thead>
+          <tbody>
+            <tr class="market-header-row"><td colspan="13"><i class="ti ti-building" style="font-size:11px;margin-right:6px"></i>BR &mdash; Brazil &nbsp;&middot;&nbsp; Budget: Market level &nbsp;&middot;&nbsp; LT: Market level</td></tr>
+            <!-- BR-GRU-P: multiple vendors bidding; Correios has 2 solutions -->
+            <tr>
+              <td rowspan="3" style="vertical-align:middle;font-weight:500;background:#FAFAFA;border-right:2px solid #EE4D2D">BR-GRU-P</td>
+              <td>Latam260605</td><td style="font-family:monospace;font-size:11px">Correios-BR-GRU-P-1</td><td>BR</td><td>GRU</td><td>20001</td><td>Correios</td>
+              <td><span class="tag tag-preferred">A</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td><input class="cell-input" type="text" value="15000"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>jianing.lijn &middot; Jun 19 09:10</div></td>
+              <td>18000</td><td>3.20</td><td>5.80</td>
+            </tr>
+            <tr>
+              <td>Latam260605</td><td style="font-family:monospace;font-size:11px">Correios-BR-GRU-P-2</td><td>BR</td><td>GRU</td><td>20001</td><td>Correios</td>
+              <td><span class="tag tag-preferred">A</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td><input class="cell-input" type="text" value="8000"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>jianing.lijn &middot; Jun 19 09:10</div></td>
+              <td>10000</td><td>2.80</td><td>6.10</td>
+            </tr>
+            <tr>
+              <td>Latam260605</td><td style="font-family:monospace;font-size:11px">Jadlog-BR-GRU-P-1</td><td>BR</td><td>GRU</td><td>20002</td><td>Jadlog</td>
+              <td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td><input class="cell-input" type="text" value="10000"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>jianing.lijn &middot; Jun 19 09:12</div></td>
+              <td>12000</td><td>&mdash;</td><td>5.20</td>
+            </tr>
+            <tr class="row-amber">
+              <td style="font-weight:500">BR-GIG-P</td>
+              <td>Latam260605</td><td style="font-family:monospace;font-size:11px">TotalExpress-BR-GIG-P-1</td><td>BR</td><td>GIG</td><td>20003</td><td>Total Express</td>
+              <td><select class="grade-select"><option>N</option><option>S</option><option>A</option><option>B</option><option>C</option></select><div class="inline-warn"><i class="ti ti-alert-triangle"></i>Missing from BI &mdash; defaulted to N</div></td>
+              <td><span class="tag tag-normal">Normal</span></td>
+              <td><input class="cell-input" type="text" placeholder="Enter capacity"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>Not yet entered</div></td>
+              <td>8000</td><td>&mdash;</td><td>4.70</td>
+            </tr>
+            <tr class="market-header-row"><td colspan="13"><i class="ti ti-building" style="font-size:11px;margin-right:6px"></i>MX &mdash; Mexico &nbsp;&middot;&nbsp; Budget: Port-dest level &nbsp;&middot;&nbsp; LT: Port-dest level</td></tr>
+            <tr class="row-red">
+              <td style="font-weight:500">MX-MEX-T</td>
+              <td>Latam260605</td><td style="font-family:monospace;font-size:11px">Estafeta-MX-MEX-T-1</td><td>MX</td><td>MEX</td><td>20004</td><td>Estafeta</td>
+              <td><span class="tag tag-preferred">S</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td><input class="cell-input" type="text" value="8000"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>jianing.lijn &middot; Jun 19 09:15</div></td>
+              <td>9000</td><td><input class="cell-input err" type="text" placeholder="Enter LT"/><div class="inline-err"><i class="ti ti-alert-circle"></i>Required for Preferred vendor</div></td><td>6.50</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">MX-GDL-P</td>
+              <td>Latam260605</td><td style="font-family:monospace;font-size:11px">DHLMX-MX-GDL-P-1</td><td>MX</td><td>GDL</td><td>20005</td><td>DHL MX</td>
+              <td><span class="tag tag-normal">C</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td><input class="cell-input" type="text" value="5000"/><div class="audit-attr" style="margin-top:2px"><i class="ti ti-user"></i>jianing.lijn &middot; Jun 19 09:16</div></td>
+              <td>6000</td><td>&mdash;</td><td>5.90</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Audit Log -->
+    <div class="section-card" id="auditLog1">
+      <div class="section-header section-header-clickable" onclick="toggleEl('auditBody1','auditIcon1')">
+        <div><div class="section-title"><i class="ti ti-history" style="font-size:14px;margin-right:6px;color:#8C8C8C"></i>Audit Log</div><div class="section-subtitle">All field changes across this bid &middot; Append-only &middot; System-generated</div></div>
+        <i class="ti ti-chevron-down collapse-icon" id="auditIcon1"></i>
+      </div>
+      <div id="auditBody1" style="display:none">
+        <table class="audit-log-table">
+          <thead><tr><th style="width:140px">Timestamp</th><th style="width:100px">User</th><th style="width:120px">Field</th><th style="width:80px">Scope</th><th>Old Value</th><th>New Value</th><th>Remark</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:14:00</td><td>cost.mgr</td><td><span class="audit-field-tag">Target Budget</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">6.200 USD/kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:14:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">Alloc. Budget</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">6.200 USD/kg</span></td><td style="color:#8C8C8C;font-style:italic">Auto-copied from Target Budget</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:16:00</td><td>cost.mgr</td><td><span class="audit-field-tag">Target Budget</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5.900 USD/kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:16:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">Alloc. Budget</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5.900 USD/kg</span></td><td style="color:#8C8C8C;font-style:italic">Auto-copied from Target Budget</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">3.500 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">3.500 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">MX · GDL</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">4.000 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:10:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">BR-GRU-P · Correios-1</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">15,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:10:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">BR-GRU-P · Correios-2</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">8,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:12:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">BR-GRU-P · Jadlog-1</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">10,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:15:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">MX-MEX-T · Estafeta-1</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">8,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:16:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">MX-GDL-P · DHLMX-1</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;padding-bottom:28px"><button class="btn btn-ghost" onclick="showScreen('list')">Back to Allocation List</button><button class="btn btn-disabled"><i class="ti ti-player-play"></i>Run Allocation</button></div>
+  </div>
+
+  <!-- PHASE 2: RESULTS -->
+  <div class="screen content" id="screen-phase2">
+    <div id="warningsModal" class="modal-overlay show">
+      <div class="modal-box">
+        <div class="modal-header"><i class="ti ti-alert-triangle" style="font-size:18px;color:#FAAD14"></i><div class="modal-title">Allocation warnings &mdash; review before proceeding</div></div>
+        <div class="modal-body">
+          <div class="warning-item"><div class="warning-id">W1 &mdash; Budget exceeded</div><div class="warning-msg">PH / MNL: Weighted avg cost 6.120 USD/kg exceeds Allocation Budget 5.950 USD/kg. Shortfall: 0.170 USD/kg.</div></div>
+          <div class="warning-item"><div class="warning-id">W2 &mdash; Preferred LT target not met</div><div class="warning-msg">PH: Weighted avg Preferred LT 3.200 days exceeds target 2.700 days.</div></div>
+          <div class="warning-item"><div class="warning-id">W3 &mdash; No Preferred vendors in scope</div><div class="warning-msg">MY / PEN: No Preferred Lead Time can be computed (no Preferred vendors in scope). The Preferred LT Target cannot be evaluated.</div></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-primary" onclick="closeModal('warningsModal')"><i class="ti ti-check"></i>I understand</button></div>
+      </div>
+    </div>
+    <div class="bid-header-card">
+      <div class="bid-header-top">
+        <div style="display:flex;align-items:center;gap:12px"><div class="bid-title">Bid ID: Sea260601</div><div class="state-badge-completed"><i class="ti ti-chart-bar"></i>Completed</div></div>
+        <button class="btn btn-ghost" style="font-size:12px"><i class="ti ti-download"></i>Export Report</button>
+      </div>
+      <div class="bid-meta">
+        <div class="bid-meta-item"><span class="bid-meta-label">Region</span><span class="bid-meta-value">SEA</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Markets</span><span class="bid-meta-value">PH, MY</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Allocation Status</span><span class="bid-meta-value" style="color:#1890FF">Completed</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Allocation Run</span><span class="bid-meta-value">2026/06/18 13:45:00</span></div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;gap:8px"><button class="btn btn-ghost btn-sm" onclick="showScreen('list')"><i class="ti ti-arrow-left"></i>Back to list</button><button class="btn btn-orange-outline btn-sm" onclick="showScreen('phase1')"><i class="ti ti-arrow-left"></i>Back to Input Setup</button></div>
+      <button class="btn btn-primary btn-sm" onclick="showScreen('phase3')"><i class="ti ti-send"></i>Submit for Approval</button>
+    </div>
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Reference Metrics</div><div class="section-subtitle">Sanity check bounds — Min Cost after Quota Break &amp; Fastest Reachable LT</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px">
+        <div class="ref-panel"><div class="ref-panel-label">Min Cost after Quota Break</div><div class="ref-metrics"><div><div class="ref-metric-label">Wtd Avg Cost</div><div class="ref-metric-val">5.7240</div></div><div><div class="ref-metric-label">Preferred LT</div><div class="ref-metric-val">2.9000</div></div><div><div class="ref-metric-label">Preferred Share</div><div class="ref-metric-val">44.2%</div></div></div></div>
+        <div class="ref-panel"><div class="ref-panel-label">Fastest Reachable LT</div><div class="ref-metrics"><div><div class="ref-metric-label">Wtd Avg Cost</div><div class="ref-metric-val">6.3100</div></div><div><div class="ref-metric-label">Preferred LT</div><div class="ref-metric-val">2.1000</div></div><div><div class="ref-metric-label">Preferred Share</div><div class="ref-metric-val">61.0%</div></div></div></div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Allocation Grid</div><div class="section-subtitle">Cost-Driven and Optimised columns are read-only &middot; Edit Manual Adjust and add remarks where required</div></div></div>
+      <div class="grid-info"><i class="ti ti-info-circle" style="font-size:13px"></i><span>Green = compliant &middot; Amber = soft warning (remark required) &middot; Red = hard error (fix numerically). Shared pool Effective Capacity shown in purple — pool total, not per-vendor.</span></div>
+      <div class="table-wrap">
+        <table class="alloc-table">
+          <thead><tr><th>Request ID</th><th>Port Dest.</th><th>Solution ID</th><th>Vendor</th><th>Grade</th><th>Type</th><th>Eff. Cap (kg)</th><th class="col-readonly">Cost-Driven (kg)</th><th class="col-readonly">Optimised (kg)</th><th>Manual Adjust (kg)<div style="font-weight:400;font-size:10px;color:#8C8C8C;margin-top:2px;line-height:1.4">Common reasons to adjust:<br/>1. Capacity cap &nbsp; 2. Adhoc agreement</div></th><th>Remark</th><th>Cost/kg</th><th>LT (days)</th></tr></thead>
+          <tbody>
+            <tr class="market-header-row"><td colspan="13"><i class="ti ti-building" style="font-size:11px;margin-right:6px"></i>PH &mdash; Philippines &nbsp;&middot;&nbsp; Budget: Market level &nbsp;&middot;&nbsp; LT: Market level</td></tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>PH &rsaquo; MNL/CRK &middot; Requested: 22,000 kg</td></tr>
+            <tr class="row-compliant">
+              <td rowspan="3" style="vertical-align:middle;font-weight:500;background:#F6FFED;border-right:2px solid #52C41A">PH-MNL/CRK-P</td><td>MNL/CRK</td><td style="font-family:monospace;font-size:11px">NinjaVan-PH-MNL/CRK-P-1</td><td>Ninja Van</td>
+              <td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td>15000</td><td class="col-readonly">11000</td><td class="col-readonly">10500</td>
+              <td><input class="cell-input manual-adjust" data-market="PH" data-cost="5.20" data-lt="" data-preferred="0" data-optimised="10500" type="text" value="10500"/></td>
+              <td>&mdash;</td><td>5.20</td><td>&mdash;</td>
+            </tr>
+            <tr class="row-warn">
+              <td>MNL/CRK</td><td style="font-family:monospace;font-size:11px">JTLogistic-PH-MNL/CRK-P-1<span class="shared-tag">Shared Pool 1</span></td><td>J&amp;T Logistic</td>
+              <td><span class="tag tag-preferred">A</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td style="font-weight:500;color:#534AB7">12000</td><td class="col-readonly">6500</td><td class="col-readonly">7000</td>
+              <td><input class="cell-input manual-adjust" data-market="PH" data-cost="5.85" data-lt="2.50" data-preferred="1" data-optimised="7000" type="text" value="7500"/></td>
+              <td>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <div class="inline-warn"><i class="ti ti-alert-triangle"></i>Shared Pool 1 over-allocated (12,500 &gt; 12,000 cap)</div>
+                  <input class="remark-input err" type="text" placeholder="Remark required to proceed"/>
+                </div>
+              </td>
+              <td>5.85</td><td>2.50</td>
+            </tr>
+            <tr class="row-warn">
+              <td>MNL/CRK</td><td style="font-family:monospace;font-size:11px">Poslaju-PH-MNL/CRK-P-1<span class="shared-tag">Shared Pool 1</span></td><td>Poslaju</td>
+              <td><span class="tag tag-preferred">S</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td style="font-weight:500;color:#534AB7">12000</td><td class="col-readonly">5500</td><td class="col-readonly">5000</td>
+              <td><input class="cell-input manual-adjust" data-market="PH" data-cost="6.10" data-lt="2.80" data-preferred="1" data-optimised="5000" type="text" value="5000"/></td>
+              <td>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <div class="inline-warn"><i class="ti ti-alert-triangle"></i>Shared Pool 1 over-allocated (12,500 &gt; 12,000 cap)</div>
+                  <input class="remark-input" type="text" placeholder="Remark required to proceed"/>
+                </div>
+              </td>
+              <td>6.10</td><td>2.80</td>
+            </tr>
+            <tr class="group-header-row">
+              <td colspan="13">
+                <i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>PH &rsaquo; CEB &middot; Requested: 8,000 kg
+              </td>
+            </tr>
+            <tr class="row-err">
+              <td rowspan="3" style="vertical-align:middle;font-weight:500;background:#FFF1F0;border-right:2px solid #FF4D4F">PH-CEB-P</td><td>CEB</td><td style="font-family:monospace;font-size:11px">JANIO-PH-CEB-P-1</td><td>JANIO</td>
+              <td><span class="tag tag-normal">N</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td>9000</td><td class="col-readonly">4000</td><td class="col-readonly">3500</td>
+              <td><input class="cell-input manual-adjust err" data-market="PH" data-cost="4.90" data-lt="" data-preferred="0" data-optimised="3500" type="text" value="3500"/></td>
+              <td><div class="inline-err"><i class="ti ti-alert-circle"></i>Route total does not match requested 8,000 kg</div></td>
+              <td>4.90</td><td>&mdash;</td>
+            </tr>
+            <tr class="row-err">
+              <td>CEB</td><td style="font-family:monospace;font-size:11px">NinjaVan-PH-CEB-P-1<span class="shared-tag">Shared Pool 2</span></td><td>Ninja Van</td>
+              <td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td style="font-weight:500;color:#534AB7">9500</td><td class="col-readonly">2500</td><td class="col-readonly">2000</td>
+              <td><input class="cell-input manual-adjust err" data-market="PH" data-cost="4.80" data-lt="" data-preferred="0" data-optimised="2000" type="text" value="2000"/></td>
+              <td><div class="inline-err"><i class="ti ti-alert-circle"></i>Route total does not match requested 8,000 kg</div></td>
+              <td>4.80</td><td>&mdash;</td>
+            </tr>
+            <tr class="row-err">
+              <td>CEB</td><td style="font-family:monospace;font-size:11px">Correios-PH-CEB-P-1<span class="shared-tag">Shared Pool 2</span></td><td>Correios</td>
+              <td><span class="tag tag-normal">C</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td style="font-weight:500;color:#534AB7">9500</td><td class="col-readonly">1500</td><td class="col-readonly">1500</td>
+              <td><input class="cell-input manual-adjust err" data-market="PH" data-cost="5.10" data-lt="" data-preferred="0" data-optimised="1500" type="text" value="1500"/></td>
+              <td><div class="inline-err"><i class="ti ti-alert-circle"></i>Route total does not match requested 8,000 kg</div></td>
+              <td>5.10</td><td>&mdash;</td>
+            </tr>
+            <tr class="market-header-row"><td colspan="13"><i class="ti ti-building" style="font-size:11px;margin-right:6px"></i>MY &mdash; Malaysia &nbsp;&middot;&nbsp; Budget: Port-dest level &nbsp;&middot;&nbsp; LT: Market level</td></tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>MY &rsaquo; KUL &middot; Requested: 12,500 kg</td></tr>
+            <tr class="row-compliant">
+              <td rowspan="2" style="vertical-align:middle;font-weight:500;background:#F6FFED;border-right:2px solid #52C41A">MY-KUL-P</td><td>KUL</td><td style="font-family:monospace;font-size:11px">VINFLAIR-MY-KUL-P-1</td><td>VINFLAIR</td>
+              <td><span class="tag tag-preferred">S</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td>6000</td><td class="col-readonly">5000</td><td class="col-readonly">5200</td>
+              <td><input class="cell-input manual-adjust" data-market="MY" data-cost="6.10" data-lt="2.80" data-preferred="1" data-optimised="5200" type="text" value="5200"/></td>
+              <td>&mdash;</td><td>6.10</td><td>2.80</td>
+            </tr>
+            <tr class="row-compliant">
+              <td>KUL</td><td style="font-family:monospace;font-size:11px">Poslaju-MY-KUL-P-1</td><td>Poslaju</td>
+              <td><span class="tag tag-preferred">A</span></td><td><span class="tag tag-preferred">Preferred</span></td>
+              <td>8000</td><td class="col-readonly">7000</td><td class="col-readonly">7300</td>
+              <td><input class="cell-input manual-adjust" data-market="MY" data-cost="5.55" data-lt="3.10" data-preferred="1" data-optimised="7300" type="text" value="7300"/></td>
+              <td>&mdash;</td><td>5.55</td><td>3.10</td>
+            </tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>MY &rsaquo; PEN &middot; Requested: 5,000 kg</td></tr>
+            <tr class="row-compliant">
+              <td style="font-weight:500">MY-PEN-T</td><td>PEN</td><td style="font-family:monospace;font-size:11px">NinjaVan-MY-PEN-T-1</td><td>Ninja Van</td>
+              <td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td>
+              <td>5500</td><td class="col-readonly">5000</td><td class="col-readonly">5000</td>
+              <td><input class="cell-input manual-adjust" data-market="MY" data-cost="4.80" data-lt="" data-preferred="0" data-optimised="5000" type="text" value="5000"/></td>
+              <td>&mdash;</td><td>4.80</td><td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Live Market Metrics — updates on Manual Adjust blur -->
+    <div class="section-card">
+      <div class="section-header section-header-clickable" onclick="toggleEl('metricBody2','metricIcon2')">
+        <div><div class="section-title">Market Metrics</div><div class="section-subtitle">Optimised vs Target &middot; Updates live as Manual Adjust values are edited</div></div>
+        <i class="ti ti-chevron-down collapse-icon open" id="metricIcon2"></i>
+      </div>
+      <div id="metricBody2">
+
+        <!-- ══ PH Philippines — budget: Market, LT: Market ══ -->
+        <div style="border-bottom:1px solid #F0F0F0">
+          <div style="padding:10px 16px;background:#FAFAFA;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:13px;font-weight:500">PH &mdash; Philippines</span>
+              <span style="font-size:10px;color:#595959;background:#E8E8E8;border-radius:3px;padding:2px 7px">Budget: Market level</span>
+              <span style="font-size:10px;color:#595959;background:#E8E8E8;border-radius:3px;padding:2px 7px">LT: Market level</span>
+            </div>
+            <span class="tag tag-err" style="font-size:10px" id="phStatusTag">2 targets not met</span>
+          </div>
+          <div style="padding:0 16px 14px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#FAFAFA">
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0;width:90px">Level</th>
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0">Metric</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Cost-Driven</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Optimised</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#1890FF;border:1px solid #F0F0F0" id="phManualHeader">Final (Manual Adjusted)</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Target</th>
+                  <th style="padding:7px 12px;text-align:center;font-weight:500;color:#595959;border:1px solid #F0F0F0">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Market level rows — target set here → pass/fail -->
+                <tr id="phCostRow" style="background:#FFF7E6">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:600;color:#EE4D2D;font-size:11px;vertical-align:middle;text-align:center">Market<br/><span style="font-weight:400;color:#595959;font-size:10px">target here</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.3800</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;font-weight:600;color:#1890FF" id="phCostFinal">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">5.9500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span id="phCostBadge" style="display:inline-block;background:#D48806;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10007; Not met</span></td>
+                </tr>
+                <tr id="phLtRow" style="background:#FFF7E6">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.5000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;font-weight:600;color:#1890FF" id="phLtFinal">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">2.7000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span id="phLtBadge" style="display:inline-block;background:#D48806;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10007; Not met</span></td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">44.5%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">48.1%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="phShareFinal">48.1%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <!-- MNL/CRK port-destination — reference only -->
+                <tr style="background:#FAFAFA">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;color:#595959;font-size:11px;vertical-align:middle;text-align:center">MNL/CRK<br/><span style="font-weight:400;color:#BFBFBF;font-size:10px">reference</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.4500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="phMnlCostFinal">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.6000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="phMnlLtFinal">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">42.0%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">51.3%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="phMnlShareFinal">51.3%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <!-- CEB port-destination — reference only -->
+                <tr style="background:#FAFAFA">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;color:#595959;font-size:11px;vertical-align:middle;text-align:center">CEB<br/><span style="font-weight:400;color:#BFBFBF;font-size:10px">reference</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.1000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">4.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="phCebCostFinal">4.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ══ MY Malaysia — budget: Port-dest, LT: Market (mixed config example) ══ -->
+        <div>
+          <div style="padding:10px 16px;background:#FAFAFA;display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;gap:8px">
+              <span style="font-size:13px;font-weight:500">MY &mdash; Malaysia</span>
+              <span style="font-size:10px;color:#595959;background:#E8E8E8;border-radius:3px;padding:2px 7px">Budget: Port-dest level</span>
+              <span style="font-size:10px;color:#595959;background:#E8E8E8;border-radius:3px;padding:2px 7px">LT: Market level</span>
+            </div>
+            <span class="tag tag-ok" style="font-size:10px" id="myStatusTag">Compliant</span>
+          </div>
+          <div style="padding:0 16px 14px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#FAFAFA">
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0;width:90px">Level</th>
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0">Metric</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Cost-Driven</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Optimised</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#1890FF;border:1px solid #F0F0F0">Final (Manual Adjusted)</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Target</th>
+                  <th style="padding:7px 12px;text-align:center;font-weight:500;color:#595959;border:1px solid #F0F0F0">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Market level — LT target here, budget reference only -->
+                <tr style="background:#FAFAFA">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;font-size:11px;vertical-align:middle;text-align:center">Market<br/><span style="font-size:9px;color:#EE4D2D;font-weight:600">LT target here</span><br/><span style="font-size:9px;color:#BFBFBF">Budget: ref only</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.9200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.7500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="myMktCostFinal">5.7500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr id="myLtRow" style="background:#F6FFED">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.1000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">2.9500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;font-weight:600;color:#1890FF" id="myLtFinal">2.9500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">3.0000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span id="myLtBadge" style="display:inline-block;background:#389E0D;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10003; Met</span></td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">54.0%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">57.8%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="myMktShareFinal">57.8%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <!-- KUL — budget target here -->
+                <tr id="myKulCostRow" style="background:#F6FFED">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;font-size:11px;vertical-align:middle;text-align:center">KUL<br/><span style="font-size:9px;color:#EE4D2D;font-weight:600">Budget target here</span><br/><span style="font-size:9px;color:#BFBFBF">LT: see Market</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.1500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.9800</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;font-weight:600;color:#1890FF" id="myKulCostFinal">5.9800</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">6.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span id="myKulCostBadge" style="display:inline-block;background:#389E0D;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10003; Met</span></td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.1000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">2.9500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="myKulLtFinal">2.9500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">57.5%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">60.2%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#1890FF" id="myKulShareFinal">60.2%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <!-- PEN — budget target here, W3 -->
+                <tr id="myPenCostRow" style="background:#F6FFED">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;font-size:11px;vertical-align:middle;text-align:center">PEN<br/><span style="font-size:9px;color:#EE4D2D;font-weight:600">Budget target here</span><br/><span style="font-size:9px;color:#BFBFBF">LT: see Market</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.4000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;font-weight:600;color:#1890FF" id="myPenCostFinal">5.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">6.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span id="myPenCostBadge" style="display:inline-block;background:#389E0D;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10003; Met</span></td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Audit Log -->
+    <div class="section-card">
+      <div class="section-header section-header-clickable" onclick="toggleEl('auditBody2','auditIcon2')">
+        <div><div class="section-title"><i class="ti ti-history" style="font-size:14px;margin-right:6px;color:#8C8C8C"></i>Audit Log</div><div class="section-subtitle">All field changes across this bid &middot; Append-only &middot; System-generated</div></div>
+        <i class="ti ti-chevron-down collapse-icon" id="auditIcon2"></i>
+      </div>
+      <div id="auditBody2" style="display:none">
+        <table class="audit-log-table">
+          <thead><tr><th style="width:140px">Timestamp</th><th style="width:100px">User</th><th style="width:120px">Field</th><th style="width:80px">Scope</th><th>Old Value</th><th>New Value</th><th>Remark</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:14:00</td><td>cost.mgr</td><td><span class="audit-field-tag">Target Budget</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">6.200 USD/kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:14:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">Alloc. Budget</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">6.200 USD/kg</span></td><td style="color:#8C8C8C;font-style:italic">Auto-copied from Target Budget</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:16:00</td><td>cost.mgr</td><td><span class="audit-field-tag">Target Budget</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5.900 USD/kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:16:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">Alloc. Budget</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5.900 USD/kg</span></td><td style="color:#8C8C8C;font-style:italic">Auto-copied from Target Budget</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">3.500 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">3.500 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">MX · GDL</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">4.000 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:10:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">BR-GRU-P · Correios-1</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">15,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 10:30:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Manual Adjust</span></td><td style="color:#595959">PH-MNL/CRK-P · JTLogistic-1</td><td><span class="audit-val old">7,000 kg</span></td><td><span class="audit-val new">7,500 kg</span></td><td style="color:#595959">HOD requested increase for J&amp;T to cover festive peak</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:8px;padding-bottom:28px"><button class="btn btn-ghost" onclick="showScreen('list')">Back to List</button><button class="btn btn-orange-outline" onclick="showScreen('phase1')"><i class="ti ti-arrow-left"></i>Back to Input Setup</button><button class="btn btn-primary" onclick="showScreen('phase3')"><i class="ti ti-send"></i>Submit for Approval</button></div>
+  </div>
+
+  <!-- PHASE 3: APPROVED -->
+  <div class="screen content" id="screen-phase3">
+    <div class="bid-header-card">
+      <div class="bid-header-top">
+        <div style="display:flex;align-items:center;gap:12px"><div class="bid-title">Bid ID: Sea260602</div><div class="state-badge-approved"><i class="ti ti-circle-check"></i>Approved</div></div>
+        <span style="background:#FFF7E6;color:#D48806;border-radius:4px;padding:3px 10px;font-size:12px;font-weight:500">Commercial Bid: Approved</span>
+      </div>
+      <div class="bid-meta">
+        <div class="bid-meta-item"><span class="bid-meta-label">Region</span><span class="bid-meta-value">SEA</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Markets</span><span class="bid-meta-value">PH, MY</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Approved by</span><span class="bid-meta-value">jianing.lijn</span></div>
+        <div class="bid-meta-item"><span class="bid-meta-label">Approved on</span><span class="bid-meta-value">2026/06/19 10:22:00</span></div>
+      </div>
+    </div>
+
+    <!-- Single action bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-ghost btn-sm" onclick="showScreen('list')"><i class="ti ti-arrow-left"></i>Back to list</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost btn-sm"><i class="ti ti-download"></i>Export Report</button>
+        <button class="btn btn-warning btn-sm" onclick="openModal('updateModal3')"><i class="ti ti-edit"></i>Update Allocation</button>
+        <button class="btn btn-success btn-sm" onclick="openModal('lockModal3')"><i class="ti ti-lock"></i>Confirmed by vendors</button>
+      </div>
+    </div>
+
+    <!-- Proof of Approval — append-only document drawer -->
+    <div class="section-card" style="border-color:#B7EB8F">
+      <div class="section-header" style="background:#F6FFED;border-bottom-color:#B7EB8F">
+        <div>
+          <div class="section-title" style="color:#389E0D"><i class="ti ti-file-check" style="font-size:14px;margin-right:6px"></i>Proof of Approval Documents</div>
+          <div class="section-subtitle">Append-only &middot; Any PIC can upload &middot; Files cannot be deleted once uploaded &middot; Locked when bid is Confirmed by vendors</div>
+        </div>
+        <button class="btn btn-success btn-sm" style="font-size:12px"><i class="ti ti-upload"></i>Upload Document</button>
+      </div>
+      <!-- Validation gate notice -->
+      <div style="background:#E6F7FF;border-bottom:1px solid #91D5FF;padding:8px 16px;display:flex;align-items:center;gap:8px;font-size:12px;color:#1890FF">
+        <i class="ti ti-info-circle" style="font-size:13px"></i>
+        <span>At least one document is required before the <strong>Approved</strong> state transition can be triggered. Additional documents can be appended at any time while in Submitted or Approved state.</span>
+      </div>
+      <!-- Uploaded documents list -->
+      <div style="padding:12px 16px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px">
+          <thead>
+            <tr style="background:#FAFAFA">
+              <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border-bottom:1px solid #F0F0F0">File Name</th>
+              <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border-bottom:1px solid #F0F0F0">Uploaded by</th>
+              <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border-bottom:1px solid #F0F0F0">Uploaded at</th>
+              <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border-bottom:1px solid #F0F0F0">Remark</th>
+              <th style="padding:7px 12px;text-align:center;font-weight:500;color:#595959;border-bottom:1px solid #F0F0F0">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0"><a style="color:#1890FF;cursor:pointer"><i class="ti ti-paperclip" style="font-size:11px;margin-right:4px"></i>HOD_approval_email.pdf</a></td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;color:#595959">jianing.lijn</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;color:#595959">2026/06/19 10:18:00</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;color:#595959">HOD email approval — SLS HOD sign-off</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;text-align:center"><span style="font-size:10px;color:#BFBFBF;font-style:italic">Cannot delete</span></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0"><a style="color:#1890FF;cursor:pointer"><i class="ti ti-paperclip" style="font-size:11px;margin-right:4px"></i>CBHead_approval_email.pdf</a></td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;color:#595959">sarah.tan</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;color:#595959">2026/06/19 10:20:00</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;color:#595959">CB Head sign-off email</td>
+              <td style="padding:8px 12px;border-bottom:1px solid #F0F0F0;text-align:center"><span style="font-size:10px;color:#BFBFBF;font-style:italic">Cannot delete</span></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 12px"><a style="color:#1890FF;cursor:pointer"><i class="ti ti-paperclip" style="font-size:11px;margin-right:4px"></i>HOD_approval_email_v2.pdf</a></td>
+              <td style="padding:8px 12px;color:#595959">jianing.lijn</td>
+              <td style="padding:8px 12px;color:#595959">2026/06/19 10:22:00</td>
+              <td style="padding:8px 12px;color:#D48806;font-style:italic">Use V2 — uploaded wrong file initially</td>
+              <td style="padding:8px 12px;text-align:center"><span style="font-size:10px;color:#BFBFBF;font-style:italic">Cannot delete</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Vendor Communication — moved to top -->
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Vendor Communication</div><div class="section-subtitle">Send allocation reports to eligible vendors &middot; Only vendors with allocated volume &gt; 0 are shown</div></div><button class="btn btn-primary btn-sm"><i class="ti ti-send"></i>Send All</button></div>
+      <table class="vendor-table" style="width:100%;border-collapse:collapse">
+        <thead><tr><th>Vendor ID</th><th>Vendor Name</th><th>Total Allocated (kg)</th><th>Send status</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>10007</td><td>Ninja Van</td><td>15500</td><td><span class="send-status sent"><i class="ti ti-circle-check" style="font-size:12px"></i> Sent 2 times &middot; last 2026/06/19 11:05:00 by jianing.lijn</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal('resendModal3')"><i class="ti ti-refresh"></i>Re-send</button></td></tr>
+          <tr><td>10027</td><td>J&amp;T Logistic</td><td>11500</td><td><span class="send-status sent"><i class="ti ti-circle-check" style="font-size:12px"></i> Sent 1 time &middot; last 2026/06/19 10:45:00 by jianing.lijn</span></td><td><button class="btn btn-ghost btn-sm" onclick="openModal('resendModal3')"><i class="ti ti-refresh"></i>Re-send</button></td></tr>
+          <tr><td>10176</td><td>JANIO</td><td>8000</td><td><span class="send-status unsent"><i class="ti ti-clock" style="font-size:12px"></i> Not yet sent</span></td><td><button class="btn btn-primary btn-sm"><i class="ti ti-send"></i>Send</button></td></tr>
+          <tr><td>10112</td><td>VINFLAIR</td><td>5200</td><td><span class="send-status unsent"><i class="ti ti-clock" style="font-size:12px"></i> Not yet sent</span></td><td><button class="btn btn-primary btn-sm"><i class="ti ti-send"></i>Send</button></td></tr>
+          <tr><td>10033</td><td>Poslaju</td><td>7300</td><td><span class="send-status unsent"><i class="ti ti-clock" style="font-size:12px"></i> Not yet sent</span></td><td><button class="btn btn-primary btn-sm"><i class="ti ti-send"></i>Send</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Reference Metrics -->
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Reference Metrics</div><div class="section-subtitle">Sanity check bounds — Min Cost after Quota Break &amp; Fastest Reachable LT</div></div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px">
+        <div class="ref-panel"><div class="ref-panel-label">Min Cost after Quota Break</div><div class="ref-metrics"><div><div class="ref-metric-label">Wtd Avg Cost</div><div class="ref-metric-val">5.7240</div></div><div><div class="ref-metric-label">Preferred LT</div><div class="ref-metric-val">2.9000</div></div><div><div class="ref-metric-label">Preferred Share</div><div class="ref-metric-val">44.2%</div></div></div></div>
+        <div class="ref-panel"><div class="ref-panel-label">Fastest Reachable LT</div><div class="ref-metrics"><div><div class="ref-metric-label">Wtd Avg Cost</div><div class="ref-metric-val">6.3100</div></div><div><div class="ref-metric-label">Preferred LT</div><div class="ref-metric-val">2.1000</div></div><div><div class="ref-metric-label">Preferred Share</div><div class="ref-metric-val">61.0%</div></div></div></div>
+      </div>
+    </div>
+
+    <!-- Market Metrics -->
+    <div class="section-card">
+      <div class="section-header section-header-clickable" onclick="toggleEl('metricBody3','metricIcon3')">
+        <div><div class="section-title">Market Metrics</div><div class="section-subtitle">Final approved allocation &middot; Read-only</div></div>
+        <i class="ti ti-chevron-down collapse-icon open" id="metricIcon3"></i>
+      </div>
+      <div id="metricBody3">
+        <!-- PH — market-level target -->
+        <div style="border-bottom:1px solid #F0F0F0">
+          <div style="padding:10px 16px;background:#FAFAFA;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:500">PH &mdash; Philippines</span>
+            <span class="tag tag-warn" style="font-size:10px">2 targets not met</span>          </div>
+          <div style="padding:0 16px 14px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#FAFAFA">
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0;width:90px">Level</th>
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0">Metric</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Cost-Driven</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Optimised</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Final (Manual Adjusted)</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Target</th>
+                  <th style="padding:7px 12px;text-align:center;font-weight:500;color:#595959;border:1px solid #F0F0F0">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#FFF7E6">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:600;color:#EE4D2D;font-size:11px;vertical-align:middle;text-align:center">Market<br/><span style="font-weight:400;color:#595959;font-size:10px">target here</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.3800</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">5.9500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span style="display:inline-block;background:#D48806;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10007; Not met</span></td>
+                </tr>
+                <tr style="background:#FFF7E6">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.5000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">2.7000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span style="display:inline-block;background:#D48806;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10007; Not met</span></td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">44.5%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">48.1%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">48.1%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;color:#595959;font-size:11px;vertical-align:middle;text-align:center">MNL/CRK<br/><span style="font-weight:400;color:#BFBFBF;font-size:10px">reference</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.4500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.1200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.6000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">42.0%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">51.3%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">51.3%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;color:#595959;font-size:11px;vertical-align:middle;text-align:center">CEB<br/><span style="font-weight:400;color:#BFBFBF;font-size:10px">reference</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.1000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">4.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">4.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- MY — port-destination target -->
+        <div>
+          <div style="padding:10px 16px;background:#FAFAFA;display:flex;align-items:center;justify-content:space-between">
+            <span style="font-size:13px;font-weight:500">MY &mdash; Malaysia</span>
+            <span class="tag tag-ok" style="font-size:10px">Compliant</span>
+          </div>
+          <div style="padding:0 16px 14px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#FAFAFA">
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0;width:90px">Level</th>
+                  <th style="padding:7px 12px;text-align:left;font-weight:500;color:#595959;border:1px solid #F0F0F0">Metric</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Cost-Driven</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Optimised</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Final (Manual Adjusted)</th>
+                  <th style="padding:7px 12px;text-align:right;font-weight:500;color:#595959;border:1px solid #F0F0F0">Target</th>
+                  <th style="padding:7px 12px;text-align:center;font-weight:500;color:#595959;border:1px solid #F0F0F0">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr style="background:#FAFAFA">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500;color:#595959;font-size:11px;vertical-align:middle;text-align:center">Market<br/><span style="font-weight:400;color:#BFBFBF;font-size:10px">reference</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.9200</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.7500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.7500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#595959">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.1000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">2.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">2.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">54.0%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">57.8%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">57.8%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#F6FFED">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:600;color:#EE4D2D;font-size:11px;vertical-align:middle;text-align:center">KUL<br/><span style="font-weight:400;color:#595959;font-size:10px">target here</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">6.1500</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.9800</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">5.9800</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">6.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span style="display:inline-block;background:#389E0D;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10003; Met</span></td>
+                </tr>
+                <tr style="background:#F6FFED">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">3.1000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">2.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">2.9000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">3.0000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span style="display:inline-block;background:#389E0D;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10003; Met</span></td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">57.5%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">60.2%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">60.2%</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+                <tr style="background:#F6FFED">
+                  <td rowspan="3" style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:600;color:#EE4D2D;font-size:11px;vertical-align:middle;text-align:center">PEN<br/><span style="font-weight:400;color:#595959;font-size:10px">target here</span></td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Wtd Avg Cost (USD/kg)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.4000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace;color:#595959">5.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;font-family:monospace">5.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">6.2000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center"><span style="display:inline-block;background:#389E0D;color:#fff;border-radius:3px;padding:2px 10px;font-size:11px;font-weight:500">&#10003; Met</span></td>
+                </tr>
+                <tr>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;font-weight:500">Preferred LT (days)</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#595959">3.0000</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#D48806;font-size:11px;font-weight:500"><i class="ti ti-alert-triangle" style="font-size:11px"></i> W3 &mdash; cannot evaluate</td>
+                </tr>
+                <tr style="background:#FAFAFA">
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;color:#BFBFBF;font-style:italic">Preferred Share</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">N/A</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:right;color:#BFBFBF">&mdash;</td>
+                  <td style="padding:7px 12px;border:1px solid #F0F0F0;text-align:center;color:#BFBFBF;font-size:11px;font-style:italic">Reference only</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="section-card">
+      <div class="section-header"><div><div class="section-title">Allocation Grid</div><div class="section-subtitle">Read-only &mdash; all values locked after approval</div></div></div>
+      <div class="grid-locked-banner"><i class="ti ti-lock" style="font-size:13px"></i><span>Allocation is approved. All values are read-only. Use <strong>Update Allocation</strong> to revise.</span></div>
+      <div class="table-wrap">
+        <table class="alloc-table">
+          <thead><tr><th>Request ID</th><th>Port Dest.</th><th>Solution ID</th><th>Vendor</th><th>Grade</th><th>Type</th><th>Eff. Cap (kg)</th><th>Cost-Driven (kg)</th><th>Optimised (kg)</th><th>Manual Adjust (kg)</th><th>Remark</th><th>Cost/kg</th><th>LT (days)</th></tr></thead>
+          <tbody>
+            <tr class="market-header-row"><td colspan="13"><i class="ti ti-building" style="font-size:11px;margin-right:6px"></i>PH &mdash; Philippines &nbsp;&middot;&nbsp; Budget: Market level &nbsp;&middot;&nbsp; LT: Market level</td></tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>PH &rsaquo; MNL/CRK &middot; Requested: 22,000 kg</td></tr>
+            <tr>
+              <td rowspan="3" style="vertical-align:middle;font-weight:500;background:#FAFAFA;border-right:2px solid #52C41A">PH-MNL/CRK-P</td>
+              <td>MNL/CRK</td><td style="font-family:monospace;font-size:11px">NinjaVan-PH-MNL/CRK-P-1</td><td>Ninja Van</td><td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td><td>15000</td><td class="col-readonly">11000</td><td class="col-readonly">10500</td><td class="col-readonly">10500</td><td>&mdash;</td><td>5.20</td><td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>MNL/CRK</td><td style="font-family:monospace;font-size:11px">JTLogistic-PH-MNL/CRK-P-1<span class="shared-tag">Shared Pool 1</span></td><td>J&amp;T Logistic</td><td><span class="tag tag-preferred">A</span></td><td><span class="tag tag-preferred">Preferred</span></td><td style="font-weight:500;color:#534AB7">12000</td><td class="col-readonly">6500</td><td class="col-readonly">7000</td><td class="col-readonly">7500</td><td style="font-size:11px;font-style:italic;color:#595959">Adjusted per HOD request</td><td>5.85</td><td>2.50</td>
+            </tr>
+            <tr>
+              <td>MNL/CRK</td><td style="font-family:monospace;font-size:11px">Poslaju-PH-MNL/CRK-P-1<span class="shared-tag">Shared Pool 1</span></td><td>Poslaju</td><td><span class="tag tag-preferred">S</span></td><td><span class="tag tag-preferred">Preferred</span></td><td style="font-weight:500;color:#534AB7">12000</td><td class="col-readonly">5500</td><td class="col-readonly">5000</td><td class="col-readonly">5000</td><td style="font-size:11px;font-style:italic;color:#595959">Shared Pool 1 remark provided</td><td>6.10</td><td>2.80</td>
+            </tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>PH &rsaquo; CEB &middot; Requested: 8,000 kg</td></tr>
+            <tr>
+              <td rowspan="3" style="vertical-align:middle;font-weight:500;background:#FAFAFA;border-right:2px solid #FF4D4F">PH-CEB-P</td>
+              <td>CEB</td><td style="font-family:monospace;font-size:11px">JANIO-PH-CEB-P-1</td><td>JANIO</td><td><span class="tag tag-normal">N</span></td><td><span class="tag tag-normal">Normal</span></td><td>9000</td><td class="col-readonly">4000</td><td class="col-readonly">3500</td><td class="col-readonly">3500</td><td>&mdash;</td><td>4.90</td><td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>CEB</td><td style="font-family:monospace;font-size:11px">NinjaVan-PH-CEB-P-1<span class="shared-tag">Shared Pool 2</span></td><td>Ninja Van</td><td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td><td style="font-weight:500;color:#534AB7">9500</td><td class="col-readonly">2500</td><td class="col-readonly">2000</td><td class="col-readonly">2500</td><td>&mdash;</td><td>4.80</td><td>&mdash;</td>
+            </tr>
+            <tr>
+              <td>CEB</td><td style="font-family:monospace;font-size:11px">Correios-PH-CEB-P-1<span class="shared-tag">Shared Pool 2</span></td><td>Correios</td><td><span class="tag tag-normal">C</span></td><td><span class="tag tag-normal">Normal</span></td><td style="font-weight:500;color:#534AB7">9500</td><td class="col-readonly">1500</td><td class="col-readonly">1500</td><td class="col-readonly">2000</td><td>&mdash;</td><td>5.10</td><td>&mdash;</td>
+            </tr>
+            <tr class="market-header-row"><td colspan="13"><i class="ti ti-building" style="font-size:11px;margin-right:6px"></i>MY &mdash; Malaysia &nbsp;&middot;&nbsp; Budget: Port-dest level &nbsp;&middot;&nbsp; LT: Market level</td></tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>MY &rsaquo; KUL &middot; Requested: 12,500 kg</td></tr>
+            <tr>
+              <td rowspan="2" style="vertical-align:middle;font-weight:500;background:#FAFAFA;border-right:2px solid #52C41A">MY-KUL-P</td>
+              <td>KUL</td><td style="font-family:monospace;font-size:11px">VINFLAIR-MY-KUL-P-1</td><td>VINFLAIR</td><td><span class="tag tag-preferred">S</span></td><td><span class="tag tag-preferred">Preferred</span></td><td>6000</td><td class="col-readonly">5000</td><td class="col-readonly">5200</td><td class="col-readonly">5200</td><td>&mdash;</td><td>6.10</td><td>2.80</td>
+            </tr>
+            <tr>
+              <td>KUL</td><td style="font-family:monospace;font-size:11px">Poslaju-MY-KUL-P-1</td><td>Poslaju</td><td><span class="tag tag-preferred">A</span></td><td><span class="tag tag-preferred">Preferred</span></td><td>8000</td><td class="col-readonly">7000</td><td class="col-readonly">7300</td><td class="col-readonly">7300</td><td>&mdash;</td><td>5.55</td><td>3.10</td>
+            </tr>
+            <tr class="group-header-row"><td colspan="13"><i class="ti ti-map-pin" style="font-size:11px;margin-right:4px"></i>MY &rsaquo; PEN &middot; Requested: 5,000 kg</td></tr>
+            <tr>
+              <td style="font-weight:500">MY-PEN-T</td>
+              <td>PEN</td><td style="font-family:monospace;font-size:11px">NinjaVan-MY-PEN-T-1</td><td>Ninja Van</td><td><span class="tag tag-normal">B</span></td><td><span class="tag tag-normal">Normal</span></td><td>5500</td><td class="col-readonly">5000</td><td class="col-readonly">5000</td><td class="col-readonly">5000</td><td>&mdash;</td><td>4.80</td><td>&mdash;</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- Audit Log -->
+    <div class="section-card">
+      <div class="section-header section-header-clickable" onclick="toggleEl('auditBody3','auditIcon3')">
+        <div><div class="section-title"><i class="ti ti-history" style="font-size:14px;margin-right:6px;color:#8C8C8C"></i>Audit Log</div><div class="section-subtitle">All field changes across this bid &middot; Append-only &middot; System-generated</div></div>
+        <i class="ti ti-chevron-down collapse-icon" id="auditIcon3"></i>
+      </div>
+      <div id="auditBody3" style="display:none">
+        <table class="audit-log-table">
+          <thead><tr><th style="width:140px">Timestamp</th><th style="width:100px">User</th><th style="width:120px">Field</th><th style="width:80px">Scope</th><th>Old Value</th><th>New Value</th><th>Remark</th></tr></thead>
+          <tbody>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:14:00</td><td>cost.mgr</td><td><span class="audit-field-tag">Target Budget</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">6.200 USD/kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:14:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">Alloc. Budget</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">6.200 USD/kg</span></td><td style="color:#8C8C8C;font-style:italic">Auto-copied from Target Budget</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:16:00</td><td>cost.mgr</td><td><span class="audit-field-tag">Target Budget</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5.900 USD/kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/18 09:16:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">Alloc. Budget</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">5.900 USD/kg</span></td><td style="color:#8C8C8C;font-style:italic">Auto-copied from Target Budget</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">BR · Market</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">3.500 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">MX · MEX</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">3.500 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 08:05:00</td><td style="color:#8C8C8C;font-style:italic">System</td><td><span class="audit-field-tag">LT Target</span></td><td style="color:#595959">MX · GDL</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">4.000 days</span></td><td style="color:#8C8C8C;font-style:italic">Extracted from Tech Bid</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 09:10:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Req. Capacity</span></td><td style="color:#595959">BR-GRU-P · Correios-1</td><td><span class="audit-val old">&mdash;</span></td><td><span class="audit-val new">15,000 kg</span></td><td style="color:#BFBFBF;font-style:italic">First entry — no remark required</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 10:30:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Manual Adjust</span></td><td style="color:#595959">PH-MNL/CRK-P · JTLogistic-1</td><td><span class="audit-val old">7,000 kg</span></td><td><span class="audit-val new">7,500 kg</span></td><td style="color:#595959">HOD requested increase for J&amp;T to cover festive peak</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 11:02:00</td><td>jianing.lijn</td><td><span class="audit-field-tag">Submitted</span></td><td style="color:#595959">Bid-level</td><td><span class="audit-val old">Manual Adjust</span></td><td><span class="audit-val new">Submitted</span></td><td style="color:#BFBFBF;font-style:italic">Submitted for approval</td></tr>
+            <tr><td style="color:#8C8C8C">2026/06/19 12:15:00</td><td>sarah.tan</td><td><span class="audit-field-tag">Approved</span></td><td style="color:#595959">Bid-level</td><td><span class="audit-val old">Submitted</span></td><td><span class="audit-val new">Approved</span></td><td style="color:#595959">Approved — noted PH targets not met, accepted per HOD sign-off</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div style="padding-bottom:28px"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- MODALS -->
+<div id="resendModal3" class="modal-overlay"><div class="modal-box"><div class="modal-header"><i class="ti ti-refresh" style="font-size:16px;color:#1890FF"></i><div class="modal-title">Confirm re-send</div></div><div class="modal-body">This vendor has already been emailed <strong>2 time(s)</strong>. Send again?<br/><br/><span style="font-size:12px;color:#BFBFBF">The system will generate a fresh vendor report from the current allocation state and dispatch a new email.</span></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('resendModal3')">Cancel</button><button class="btn btn-primary">Send again</button></div></div></div>
+<div id="updateModal3" class="modal-overlay"><div class="modal-box"><div class="modal-header"><i class="ti ti-edit" style="font-size:16px;color:#D48806"></i><div class="modal-title">Update allocation</div></div><div class="modal-body"><div style="margin-bottom:14px">This will revert the allocation to <strong>Manual Adjust</strong> state. Prior Manual Adjust values are preserved. You will need to re-submit for approval.</div><label class="form-label">Remark <span style="color:#CF1322">*</span></label><textarea class="form-textarea" placeholder="Enter reason for update (required)"></textarea><div style="margin-top:12px"><label class="form-label">Attachment <span style="color:#BFBFBF">(optional)</span></label><button class="btn btn-ghost btn-sm"><i class="ti ti-upload"></i>Upload file</button></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('updateModal3')">Cancel</button><button class="btn btn-warning">Confirm update</button></div></div></div>
+<div id="lockModal3" class="modal-overlay"><div class="modal-box"><div class="modal-header"><i class="ti ti-lock" style="font-size:16px;color:#CF1322"></i><div class="modal-title" style="color:#CF1322">Lock bid &mdash; permanent action</div></div><div class="modal-body"><div class="alert-box"><i class="ti ti-alert-triangle" style="font-size:14px;flex-shrink:0;margin-top:1px"></i><div><strong>Locking this bid is permanent.</strong> No further changes &mdash; approval actions, Update, or allocation edits &mdash; will be possible after confirmation.</div></div><div style="margin-top:14px"><label class="form-label">Remark <span style="color:#BFBFBF">(optional)</span></label><textarea class="form-textarea" placeholder="Optional remark" style="height:60px"></textarea></div><div style="margin-top:12px"><label class="form-label">Attachment <span style="color:#BFBFBF">(optional)</span></label><button class="btn btn-ghost btn-sm"><i class="ti ti-upload"></i>Upload file</button></div></div><div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('lockModal3')">Cancel</button><button class="btn btn-danger">Lock permanently</button></div></div></div>
+
+<script>
+const breadcrumbs={list:'Bid Management / <span>Allocation</span>',phase1:'Bid Management / Allocation / <span>Latam260605 &mdash; Input Setup</span>',phase2:'Bid Management / Allocation / <span>Sea260601 &mdash; Results</span>',phase3:'Bid Management / Allocation / <span>Sea260602 &mdash; Approved</span>'};
+function showScreen(name){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('screen-'+name).classList.add('active');document.getElementById('breadcrumb').innerHTML=breadcrumbs[name];window.scrollTo(0,0);if(name==='phase2'){document.getElementById('warningsModal').classList.add('show');}}
+function toggleEl(bodyId,iconId){const body=document.getElementById(bodyId);const icon=document.getElementById(iconId);if(!body)return;const hidden=body.style.display==='none';body.style.display=hidden?'':'none';if(icon)icon.classList.toggle('open',hidden);}
+function openModal(id){const el=document.getElementById(id);if(el)el.classList.add('show');}
+function closeModal(id){const el=document.getElementById(id);if(el)el.classList.remove('show');}
+// PH Market live metric recalculation
+const PH_COST_TARGET = 5.95;
+const PH_LT_TARGET = 2.70;
+
+// Optimised baseline values (pre-fill Final column on load)
+const PH_OPT_COST = 6.1200;
+const PH_OPT_LT = 3.2000;
+const PH_OPT_SHARE = 48.1;
+const PH_MNL_OPT_COST = 6.1200;
+const PH_MNL_OPT_LT = 3.2000;
+const PH_MNL_OPT_SHARE = 51.3;
+const PH_CEB_OPT_COST = 4.9000;
+
+function recalcPHMetrics() {
+  const inputs = document.querySelectorAll('.manual-adjust[data-market="PH"]');
+  let totalKg = 0, totalCostKg = 0, totalPrefKg = 0, totalPrefLtKg = 0;
+  let mnlKg = 0, mnlCostKg = 0, mnlPrefKg = 0, mnlPrefLtKg = 0;
+  let cebKg = 0, cebCostKg = 0;
+  let hasManualChange = false;
+
+  inputs.forEach(inp => {
+    const kg = parseFloat(inp.value) || 0;
+    const cost = parseFloat(inp.dataset.cost) || 0;
+    const lt = parseFloat(inp.dataset.lt) || 0;
+    const isPreferred = inp.dataset.preferred === '1';
+    const optimised = parseFloat(inp.dataset.optimised) || 0;
+    const portDest = inp.closest('tr') ? inp.closest('tr').querySelector('td:nth-child(2)')?.textContent?.trim() : '';
+    if (kg !== optimised) hasManualChange = true;
+    totalKg += kg; totalCostKg += kg * cost;
+    if (isPreferred) { totalPrefKg += kg; totalPrefLtKg += kg * lt; }
+    // Port-level breakdown
+    const solId = inp.dataset.sol || '';
+    if (inp.closest('tr')) {
+      const cells = inp.closest('tr').querySelectorAll('td');
+      const pd = cells[1] ? cells[1].textContent.trim() : '';
+      if (pd === 'MNL/CRK' || pd === 'CRK') {
+        mnlKg += kg; mnlCostKg += kg * cost;
+        if (isPreferred) { mnlPrefKg += kg; mnlPrefLtKg += kg * lt; }
+      } else if (pd === 'CEB') {
+        cebKg += kg; cebCostKg += kg * cost;
+      }
+    }
+  });
+
+  const finalCost = totalKg > 0 ? totalCostKg / totalKg : PH_OPT_COST;
+  const finalLt = totalPrefKg > 0 ? totalPrefLtKg / totalPrefKg : PH_OPT_LT;
+  const finalShare = totalKg > 0 ? (totalPrefKg / totalKg * 100) : PH_OPT_SHARE;
+  const finalMnlCost = mnlKg > 0 ? mnlCostKg / mnlKg : PH_MNL_OPT_COST;
+  const finalMnlLt = mnlPrefKg > 0 ? mnlPrefLtKg / mnlPrefKg : PH_MNL_OPT_LT;
+  const finalMnlShare = mnlKg > 0 ? (mnlPrefKg / mnlKg * 100) : PH_MNL_OPT_SHARE;
+  const finalCebCost = cebKg > 0 ? cebCostKg / cebKg : PH_CEB_OPT_COST;
+
+  // Update Final column cells
+  const setFinal = (id, val, isPercent) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = isPercent ? val.toFixed(1) + '%' : val.toFixed(4);
+  };
+  setFinal('phCostFinal', finalCost, false);
+  setFinal('phLtFinal', finalLt, false);
+  setFinal('phShareFinal', finalShare, true);
+  setFinal('phMnlCostFinal', finalMnlCost, false);
+  setFinal('phMnlLtFinal', finalMnlLt, false);
+  setFinal('phMnlShareFinal', finalMnlShare, true);
+  setFinal('phCebCostFinal', finalCebCost, false);
+
+  // Status badges always evaluate against Final
+  const costRow = document.getElementById('phCostRow');
+  const costBadge = document.getElementById('phCostBadge');
+  const costMet = finalCost <= PH_COST_TARGET;
+  costRow.style.background = costMet ? '#F6FFED' : '#FFF7E6';
+  costBadge.style.background = costMet ? '#389E0D' : '#D48806';
+  costBadge.innerHTML = costMet ? '&#10003; Met' : '&#10007; Not met';
+
+  const ltRow = document.getElementById('phLtRow');
+  const ltBadge = document.getElementById('phLtBadge');
+  const ltMet = finalLt <= PH_LT_TARGET;
+  ltRow.style.background = ltMet ? '#F6FFED' : '#FFF7E6';
+  ltBadge.style.background = ltMet ? '#389E0D' : '#D48806';
+  ltBadge.innerHTML = ltMet ? '&#10003; Met' : '&#10007; Not met';
+
+  // Market status tag
+  const tag = document.getElementById('phStatusTag');
+  const notMet = [!costMet, !ltMet].filter(Boolean).length;
+  if (notMet === 0) { tag.className = 'tag tag-ok'; tag.style.fontSize = '10px'; tag.textContent = 'Compliant'; }
+  else { tag.className = 'tag tag-warn'; tag.style.fontSize = '10px'; tag.textContent = notMet + ' target' + (notMet > 1 ? 's' : '') + ' not met'; }
+}
+
+// Trigger on blur (not keyup — only recompute when user leaves the field)
+document.querySelectorAll('.manual-adjust[data-market="PH"]').forEach(inp => {
+  inp.addEventListener('blur', recalcPHMetrics);
+});
+
+// Run once on load to pre-fill Final from Optimised baseline
+recalcPHMetrics();
+
+// MY Market live metric recalculation
+const MY_LT_TARGET = 3.00;
+const MY_KUL_COST_TARGET = 6.20;
+const MY_PEN_COST_TARGET = 6.20;
+
+const MY_OPT_MKT_COST = 5.7500;
+const MY_OPT_MKT_LT   = 2.9500;
+const MY_OPT_MKT_SHARE = 57.8;
+const MY_OPT_KUL_COST  = 5.9800;
+const MY_OPT_KUL_LT    = 2.9500;
+const MY_OPT_KUL_SHARE = 60.2;
+const MY_OPT_PEN_COST  = 5.2000;
+
+function recalcMYMetrics() {
+  const inputs = document.querySelectorAll('.manual-adjust[data-market="MY"]');
+  let mktKg=0, mktCostKg=0, mktPrefKg=0, mktPrefLtKg=0;
+  let kulKg=0, kulCostKg=0, kulPrefKg=0, kulPrefLtKg=0;
+  let penKg=0, penCostKg=0;
+
+  inputs.forEach(inp => {
+    const kg = parseFloat(inp.value) || 0;
+    const cost = parseFloat(inp.dataset.cost) || 0;
+    const lt = parseFloat(inp.dataset.lt) || 0;
+    const isPreferred = inp.dataset.preferred === '1';
+    const cells = inp.closest('tr') ? inp.closest('tr').querySelectorAll('td') : [];
+    const pd = cells[1] ? cells[1].textContent.trim() : '';
+    mktKg += kg; mktCostKg += kg * cost;
+    if (isPreferred) { mktPrefKg += kg; mktPrefLtKg += kg * lt; }
+    if (pd === 'KUL') { kulKg += kg; kulCostKg += kg * cost; if (isPreferred) { kulPrefKg += kg; kulPrefLtKg += kg * lt; } }
+    if (pd === 'PEN') { penKg += kg; penCostKg += kg * cost; }
+  });
+
+  const finalMktCost  = mktKg > 0 ? mktCostKg / mktKg : MY_OPT_MKT_COST;
+  const finalMktLt    = mktPrefKg > 0 ? mktPrefLtKg / mktPrefKg : MY_OPT_MKT_LT;
+  const finalMktShare = mktKg > 0 ? (mktPrefKg / mktKg * 100) : MY_OPT_MKT_SHARE;
+  const finalKulCost  = kulKg > 0 ? kulCostKg / kulKg : MY_OPT_KUL_COST;
+  const finalKulLt    = kulPrefKg > 0 ? kulPrefLtKg / kulPrefKg : MY_OPT_KUL_LT;
+  const finalKulShare = kulKg > 0 ? (kulPrefKg / kulKg * 100) : MY_OPT_KUL_SHARE;
+  const finalPenCost  = penKg > 0 ? penCostKg / penKg : MY_OPT_PEN_COST;
+
+  const set = (id, val, pct) => { const el=document.getElementById(id); if(el) el.textContent = pct ? val.toFixed(1)+'%' : val.toFixed(4); };
+  set('myMktCostFinal',  finalMktCost,  false);
+  set('myLtFinal',       finalMktLt,    false);
+  set('myMktShareFinal', finalMktShare, true);
+  set('myKulCostFinal',  finalKulCost,  false);
+  set('myKulLtFinal',    finalKulLt,    false);
+  set('myKulShareFinal', finalKulShare, true);
+  set('myPenCostFinal',  finalPenCost,  false);
+
+  // Market LT badge
+  const ltMet = finalMktLt <= MY_LT_TARGET;
+  const ltRow = document.getElementById('myLtRow');
+  const ltBadge = document.getElementById('myLtBadge');
+  if (ltRow) ltRow.style.background = ltMet ? '#F6FFED' : '#FFF7E6';
+  if (ltBadge) { ltBadge.style.background = ltMet ? '#389E0D' : '#D48806'; ltBadge.innerHTML = ltMet ? '&#10003; Met' : '&#10007; Not met'; }
+
+  // KUL cost badge
+  const kulMet = finalKulCost <= MY_KUL_COST_TARGET;
+  const kulRow = document.getElementById('myKulCostRow');
+  const kulBadge = document.getElementById('myKulCostBadge');
+  if (kulRow) kulRow.style.background = kulMet ? '#F6FFED' : '#FFF7E6';
+  if (kulBadge) { kulBadge.style.background = kulMet ? '#389E0D' : '#D48806'; kulBadge.innerHTML = kulMet ? '&#10003; Met' : '&#10007; Not met'; }
+
+  // PEN cost badge
+  const penMet = finalPenCost <= MY_PEN_COST_TARGET;
+  const penRow = document.getElementById('myPenCostRow');
+  const penBadge = document.getElementById('myPenCostBadge');
+  if (penRow) penRow.style.background = penMet ? '#F6FFED' : '#FFF7E6';
+  if (penBadge) { penBadge.style.background = penMet ? '#389E0D' : '#D48806'; penBadge.innerHTML = penMet ? '&#10003; Met' : '&#10007; Not met'; }
+
+  // MY status tag
+  const myTag = document.getElementById('myStatusTag');
+  const notMet = [!ltMet, !kulMet, !penMet].filter(Boolean).length;
+  if (myTag) {
+    if (notMet === 0) { myTag.className='tag tag-ok'; myTag.style.fontSize='10px'; myTag.textContent='Compliant'; }
+    else { myTag.className='tag tag-warn'; myTag.style.fontSize='10px'; myTag.textContent=notMet+' target'+(notMet>1?'s':'')+' not met'; }
+  }
+}
+
+document.querySelectorAll('.manual-adjust[data-market="MY"]').forEach(inp => {
+  inp.addEventListener('blur', recalcMYMetrics);
+});
+recalcMYMetrics();
+</script>
+</body>
+</html>
