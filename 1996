@@ -1,0 +1,202 @@
+# UAT Test Case Generator
+
+> **Purpose:** This document specifies how to generate UAT test case Excel files (`.xlsx`) from a PRD, BRD, or feature spec. Use it as a system prompt or instruction block for any AI coding tool (Codex, Cursor, etc.) to produce correctly formatted, tester-ready UAT test case files.
+
+---
+
+## Column Schema (8 columns, always in this order)
+
+| Column | Header | Purpose |
+|--------|--------|---------|
+| A | # | Sequential test case number. Leave blank on section header rows. |
+| B | Priority | `High` or `Medium` — see Priority Rules below |
+| C | Case Title & Description | Section label on first row of a new group (e.g. `"9.2 – 1:N Solution ID Logic"`). Blank on subsequent rows of same section. |
+| D | PIC | Person or role executing the test. Derive from the roles defined in the PRD. |
+| E | Steps | Numbered steps. Use `\n` for line breaks. Include UAT URLs where available. |
+| F | Expected results | Bullet points using `*`. One expected result per step where possible. Include exact error messages from spec. **Note:** header uses lowercase "r" — `"Expected results"` not `"Expected Results"` |
+| G | Pass/Fail/Skip | Leave blank unless instructed. |
+| H | Remarks | Optional: data examples, role clarifications, `"Happy path"`, `"Negative case"` labels. |
+
+---
+
+## Priority Rules
+
+**High** — core functional flows that block the feature from working:
+- Upload validation (happy path acceptance)
+- Key error/rejection flows (region conflict, serial number errors)
+- Multi-role end-to-end flows (vendor submits → assessment → commercial linkage)
+- UI field renames that affect navigation or usability
+- Assessment access rights and vendor masking
+
+**Medium** — supporting, edge case, or configuration tests:
+- Boundary/negative validation cases (0 value, wrong format, gap in sequence)
+- Seatalk reminder triggers and message content
+- UI label/tooltip details
+- Capacity calculation edge cases
+- Assign Permission timing restrictions
+- Template instruction text checks
+
+---
+
+## Elicitation: Questions to Ask Before Generating
+
+Before generating any test cases, clarify the following if not already clear from context:
+
+1. **Which sections/features to cover?** — Present all BRD sections as multi-select options.
+2. **Who are the PICs?** — Derive role names from the PRD. Confirm with the user if any roles are ambiguous.
+3. **Pass/Fail/Skip pre-fill preference?** — Options: Pre-fill all as `Pass` / Leave blank / Pre-fill `Pass` + mark unbuilt as `Skip`
+4. **Negative/error cases?** — For upload validation or form logic: Both happy path + error / Happy path only / Error only
+5. **UAT environment URLs?** — Options: Use `ops.ssc.uat.shopeemobile.com` URLs / Add manually later / Use `[UAT_BASE_URL]` placeholders
+6. **Sheet structure** *(always clarify — never assume)*: Does this project have existing Phase 1 test cases on a separate sheet, or should everything go on one sheet? Options: Separate sheets (e.g. `P1` / `P2`) / Single sheet
+7. **Preview one section first?** — Always offer to preview the most complex section (upload validation + multi-role flow) before building the full file.
+
+### Optional / Situational
+
+8. **Pass rate tracker?** — If requested, add it to the RIGHT of the header row on each test sheet (columns J–K), NOT on a separate sheet:
+
+   | Col J (Label) | Col K (Formula) |
+   |---|---|
+   | pass rate | `=COUNTIF(G3:G10000,"Pass")/COUNTIF(A3:A10000,"<>")` formatted as % |
+   | Total Cases | `=COUNTIF(A3:A10000,"<>")` |
+   | Pass | `=COUNTIF(G3:G10000,"Pass")` |
+   | Fail | `=COUNTIF(G3:G10000,"Fail")` |
+   | Skip | `=COUNTIF(G3:G10000,"Skip")` |
+   | Remaining (blank) | `=COUNTIF(A3:A10000,"<>")-COUNTIF(G3:G10000,"<>")` |
+
+   > Key formula note: Denominator always uses `COUNTIF(A3:A10000,"<>")` (column A, `#` column) — NOT column G. This excludes section header rows (blank `#`) and empty rows. Range is intentionally oversized to pick up new rows dynamically.
+
+9. **问题list (bug tracker) sheet?** — Only include if explicitly requested. Schema: `#`, `Date`, `Question`, `Remark`, `Status`, `Comment`
+
+---
+
+## Test Case Writing Rules
+
+### Section Headers
+Insert a section header row before each logical group:
+- `#` = blank
+- `Priority` = `"High"`
+- `Case Title` = `"9.2 – Feature Name"` (BRD section number + short label)
+- All other columns blank
+
+### Step Writing
+- Use numbered steps: `1. Do X\n2. Click Y\n3. Check Z`
+- Be specific about navigation paths: `Bid Management → Solution Management → Bid Solution`
+- For time-triggered events (Seatalk, emails): instruct tester to manipulate UAT date
+- For file uploads: specify what the file contains (e.g. `"数字编号 = 1, 2, 4 (gap at 3)"`)
+- Include UAT URLs inline in steps where known (e.g. `https://ops.ssc.uat.shopeemobile.com/...`)
+
+### Expected Results Writing
+- Column header is `"Expected results"` (lowercase r)
+- Use `*` bullets
+- Quote exact error messages from the BRD verbatim
+- For UI changes: list every renamed field explicitly
+- For calculations: include numeric examples from BRD where provided
+
+### Priority Assignment Per Test Case
+Within a section, the happy path acceptance test is usually `High`; negative/edge/format cases are usually `Medium`.
+
+### Negative Test Case Patterns (always include for upload/form features)
+For any field with validation, generate test cases for:
+- Valid value (happy path) → `High`
+- Boundary value (e.g. exactly 0, exactly at limit) → `Medium`
+- Out-of-range value (e.g. negative, exceeds max) → `Medium`
+- Wrong format (e.g. letters in numeric field, wrong decimal places) → `Medium`
+- Missing/blank (if field is mandatory) → `Medium`
+- Multi-value comma-separated (if spec mentions comma-separated input) → `Medium`
+
+### Multi-Role Flows
+When a feature involves multiple roles (e.g. Procurement creates → Vendor uploads → LH Team assesses), write separate test cases per role action in sequence. Set the `PIC` column accurately per step.
+
+### Seatalk / Automated Reminders
+- Test trigger condition (date manipulation in UAT) → `Medium` priority
+- Test message title matches spec exactly
+- Test message body includes correct placeholders (`[Bid ID]`, `[Expiration Date]`)
+- Test send frequency (1x/day, 2x/day, once)
+
+---
+
+## Excel Formatting (openpyxl)
+
+```python
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+HEADER_FILL  = PatternFill("solid", start_color="4F81BD", end_color="4F81BD")
+SECTION_FILL = PatternFill("solid", start_color="DCE6F1", end_color="DCE6F1")
+WHITE_FILL   = PatternFill("solid", start_color="FFFFFF", end_color="FFFFFF")
+ALT_FILL     = PatternFill("solid", start_color="EBF3FB", end_color="EBF3FB")
+
+HEADER_FONT  = Font(name="Arial", bold=True, color="FFFFFF", size=10)
+BOLD_FONT    = Font(name="Arial", bold=True, size=9)
+NORMAL_FONT  = Font(name="Arial", size=9)
+SECTION_FONT = Font(name="Arial", bold=True, size=9, color="1F497D")
+
+thin   = Side(style="thin", color="B8CCE4")
+border = Border(left=thin, right=thin, top=thin, bottom=thin)
+wrap   = Alignment(wrap_text=True, vertical="top")
+```
+
+**Column widths:** A=6, B=10, C=35, D=20, E=65, F=60, G=15, H=30
+
+**Row structure:**
+- Row 1: header row with `HEADER_FILL` + `HEADER_FONT`
+- Row 2: merged A2:H2, italic grey note `"Test Cases prepared by QA and reviewed by Reg PM"`
+- Row 3+: alternating `WHITE_FILL` / `ALT_FILL` for data rows; `SECTION_FILL` for section headers
+
+**Freeze panes at A3.**
+
+**Row height:** `max(18, min(num_newlines * 14, 200))` — auto-size based on content.
+
+---
+
+## Example Test Cases
+
+### Negative Upload Validation (Medium priority)
+
+```
+#: 15
+Priority: Medium
+Case Title: (blank – same section as TC 14)
+PIC: Vendor
+Steps:
+  1. Prepare file with 数字编号 = 1, 2, 4 (gap at 3)
+  2. Attempt upload in 3PL Portal → Bid compliance procedure → Technical Bid
+Expected results:
+  * Upload blocked
+  * Error: "Serial Number input error, continuous positive integers are required"
+Pass/Fail/Skip: (blank)
+Remarks: Gap in sequence rejected
+```
+
+### Core Functional Flow (High priority)
+
+```
+#: 19
+Priority: High
+Case Title: (blank – same section as TC 18)
+PIC: Vendor
+Steps:
+  1. Upload 3 solutions for the same Request ID from same vendor (数字编号 1, 2, 3)
+  2. Check SLS admin → Solution Management → Technical Bid Solution
+Expected results:
+  * System allows multiple solutions per vendor per request
+  * All 3 solutions visible in SLS admin
+Pass/Fail/Skip: (blank)
+Remarks: 1:N relationship confirmed
+```
+
+---
+
+## Generation Workflow
+
+```
+0. Request the PRD/BRD file from the user before doing anything else.
+   Do not proceed until the spec has been provided.
+1. Read the PRD/spec thoroughly
+2. Ask elicitation questions (sheet structure is MANDATORY — never assume)
+3. Offer to preview the most complex section first
+4. Incorporate user feedback on preview
+5. Build full .xlsx with all sections
+6. Deliver the output file
+```
